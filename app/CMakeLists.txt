@@ -81,8 +81,7 @@ set(RENUT_SOURCES
     src/main.cpp
     # TFU-nx (2026-11-12): the build stamp, the first line of every log (app/cmake/tfu_build_stamp.cmake).
     src/tfu_build_stamp.cpp
-    # TFU-nx (2026-11-12): the job workers' idle wait (tools/tfu_spin_idle.py puts the call in sub_826B1398).
-    src/tfu/tfu_job_idle.cpp
+    # S4ep1-nx: TFU's job-worker idle wait (src/tfu/tfu_job_idle.cpp, a patch at a TFU address) left out.
     src/rr6_keys.cpp
     # TFU-nx: rr6-nx's src/rr6_game_fixes.cpp (RR6's save-data addresses) removed; TFU's own fixes come as found.
     # katamari-nx (2026-10-31): DLC packages in the "dlc" folder next to the NRO installed at start (reNut upstream's).

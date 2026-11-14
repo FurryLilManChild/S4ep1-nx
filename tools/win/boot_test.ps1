@@ -1,8 +1,8 @@
-# TFU-nx: from LoS1-nx tools/win/boot_test.ps1.
+# S4ep1-nx (from TFU-nx), originally from LoS1-nx tools/win/boot_test.ps1.
 # Starts the PC build, lets it run for a while, then closes it and keeps the log.
 # -Renderer renut uses Renut's renderer, -Renderer xenos the emulated GPU (default: what los.toml says).
 # -Backend vulkan or d3d12 picks Renut's graphics API (default: D3D12 on Windows).
-# Usage (from C:\TFU-nx): powershell -ExecutionPolicy Bypass -File tools\win\boot_test.ps1 [-Seconds 60]
+# Usage (from C:\S4ep1-nx): powershell -ExecutionPolicy Bypass -File tools\win\boot_test.ps1 [-Seconds 60]
 # The game window opens; you can watch it (and play if it gets that far). It is closed after -Seconds.
 # Each run's log: out\logs\boot_<date>_<time>.log, and out\logs\boot_latest.log is always the newest.
 
@@ -10,7 +10,7 @@ param([int]$Seconds = 60, [string]$Renderer = '', [string]$Backend = '', [string
 
 $repo = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 $exe = Join-Path $repo 'out\pc\renut.exe'
-$game = Join-Path $repo 'assets\game_root'
+$game = Join-Path $repo 'assets\extracted'
 $logDir = Join-Path $repo 'out\logs'
 New-Item -ItemType Directory -Force -Path $logDir | Out-Null
 

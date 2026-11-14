@@ -1,7 +1,7 @@
-# TFU-nx: builds the Windows PC test build. Extracts the disc the first time, configures, runs the code generator
+# S4ep1-nx (from TFU-nx): builds the Windows PC test build. Extracts the XBLA package the first time, configures, runs the code generator
 # through the build, and compiles everything. Every step's full output goes to out\logs\.
 #
-# Usage (from C:\TFU-nx): powershell -ExecutionPolicy Bypass -File tools\win\build_pc.ps1 [-Jobs N] [-Clean] [-Renut]
+# Usage (from C:\S4ep1-nx): powershell -ExecutionPolicy Bypass -File tools\win\build_pc.ps1 [-Jobs N] [-Clean] [-Renut]
 #   -Jobs   parallel compile jobs (default: half the logical CPUs, at most 8; each translated file needs 1-2 GB RAM)
 #   -Clean  delete the build folder first
 #   -Renut  build Renut's renderer in (the shaders come from out\renut_shader_dump, plus what Renut captured last run)
@@ -19,7 +19,7 @@ New-Item -ItemType Directory -Force -Path $logDir | Out-Null
 
 $sdk = Join-Path $repo 'sdk'
 $build = Join-Path $repo 'out\pc'
-$gameRoot = Join-Path $repo 'assets\game_root'
+$gameRoot = Join-Path $repo 'assets\extracted'
 
 function Step($name, $logName, [scriptblock]$body) {
     $log = Join-Path $logDir $logName
@@ -50,12 +50,13 @@ function Step($name, $logName, [scriptblock]$body) {
 
 . (Join-Path $PSScriptRoot 'env.ps1')
 
-# 1. The game files (one time): extracted from the disc image in assets\ by our own tools\xdvdfs_list.py.
+# 1. The game files (one time): the XBLA package (the LIVE file over 100 MB anywhere under assets\) extracted by our
+#    own tools\stfs_extract.py into assets\extracted (default.xex, data.cpk).
 if (-not (Test-Path (Join-Path $gameRoot 'default.xex'))) {
-    $iso = Get-ChildItem (Join-Path $repo 'assets') -Filter '*.iso' | Select-Object -First 1
-    if (-not $iso) { Write-Host 'No .iso in assets\ and no assets\game_root: put the disc image in assets\.'; exit 1 }
-    Step 'Extracting the disc (one time, about 7 GB)' 'extract.log' {
-        python (Join-Path $repo 'tools\xdvdfs_list.py') $iso.FullName --extract-all $gameRoot
+    $pkg = Get-ChildItem (Join-Path $repo 'assets') -Recurse -File | Where-Object { $_.Length -gt 100MB } | Select-Object -First 1
+    if (-not $pkg) { Write-Host 'No XBLA package under assets\ and no assets\extracted: put the package in assets\.'; exit 1 }
+    Step 'Extracting the XBLA package (one time, about 190 MB)' 'extract.log' {
+        python (Join-Path $repo 'tools\stfs_extract.py') $pkg.FullName $gameRoot
     }
 }
 
@@ -70,7 +71,7 @@ if (Test-Path $appAssets) {
 }
 if (-not (Test-Path $appAssets)) {
     cmd /c mklink /J "$appAssets" "$gameRoot" | Out-Null
-    Write-Host "app\assets now points at assets\game_root"
+    Write-Host "app\assets now points at assets\extracted"
 }
 
 if ($Jobs -le 0) { $Jobs = [math]::Max(1, [math]::Min(8, [int]([Environment]::ProcessorCount / 2))) }
@@ -151,13 +152,6 @@ if (Test-Path (Join-Path $genDir 'codegen.stamp')) {
         }
         Set-Content -Path $hookList -Value $now -NoNewline
     }
-}
-
-# 3e. TFU's own change to the generated code (tools/tfu_spin_idle.py: the job workers' idle call). Run on every build:
-#     it writes the file only when the change is missing (after a code generation), so an unchanged build rebuilds nothing.
-if (Test-Path (Join-Path $genDir 'codegen.stamp')) {
-    python (Join-Path $repo 'tools\tfu_spin_idle.py')
-    if ($LASTEXITCODE -ne 0) { Write-Host 'tools\tfu_spin_idle.py failed (above). Tell Claude.'; exit 1 }
 }
 
 # 4. Configure. (app\generated\rexglue.cmake is in git, so the build itself runs the code generator: no
