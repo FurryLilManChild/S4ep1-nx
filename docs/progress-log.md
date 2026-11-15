@@ -66,3 +66,14 @@ Newest first.
 - Sweep of other games' code still in the tree: N&B's keyboard/mouse pad mask, N&B's photo hook, banjo's native PM4
   renderer (masseffect_renderer_native) and RR6's DLC unlock are off by default or never registered; widescreen.cpp's
   N&B hooks are compiled out. Inert, to be removed in a cleanup.
+
+## 2026-11-14 (late): first PC play, emulated GPU
+
+- After the path wizard fix: title screen on Mark's PC. New Game crashed: "Call to invalid or unregistered function at
+  0x82149FF8": the generator ran 0x82149E30 past its .pdata end and swallowed a function with no .pdata entry (its
+  address built by lis/addi at 0x82149C18, 0x82149D30). A scan for every lis/addi address that lands on a .pdata end
+  without being a function start found one more (0x8235E920); both declared in overrides.toml (0x82130004 is padding).
+- The menu offered "Unlock Full Game": the SDK's license_mask defaulted to 0 (trial). Sonic 4 tests bit 0 of
+  XamContentGetLicenseMask's mask (sub_82163E00) and clears its trial flag when set: license_mask now defaults to 1.
+  Mark's "Addon" package is avatar items, not a title update; nothing else is needed for the full game.
+- Renut run: "Direct3D_CreateDevice: InitializePresentationParameters failed"; 6 shaders captured. Next to look at.

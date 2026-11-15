@@ -21,7 +21,9 @@
 #include <rex/system/xenumerator.h>
 #include <rex/system/xtypes.h>
 
-REXCVAR_DEFINE_UINT32(license_mask, 0, "Kernel", "Set license mask for activated content");
+// S4ep1-nx (2026-11-14): 1 = purchased. Sonic 4 tests bit 0 (sub_82163E00: clrlwi 31, == 1 clears its trial flag +0xA0). Sonic 4 Episode I is an XBLA title that
+// asks XamContentGetLicenseMask and ran as the trial with 0 ("Unlock Full Game" in its menu); this port is the full game.
+REXCVAR_DEFINE_UINT32(license_mask, 1, "Kernel", "Set license mask for activated content");
 
 namespace rex {
 namespace kernel {

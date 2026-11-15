@@ -136,3 +136,13 @@
 # override_labels_check.py (2026-11-14) flagged 10 accepted entries as labels inside a function (fall-through from the
 # previous instruction or branch targets: 1 SEH scope from the pointer sweep, 9 epilogue tails from the gap sweep).
 # Removed, as TFU-nx and rr6-nx did: 0x8222F214, 0x8220EDD8, 0x8220EE44, 0x8220EEC0, 0x8220EF38, 0x82315224, 0x82315C50, 0x82315DB0, 0x82444060, 0x8247FE58.
+
+# 2026-11-14, Mark's first PC play (emulated GPU, New Game): "Call to invalid or unregistered function at guest address
+# 0x82149FF8". The generator ran 0x82149E30 past its .pdata end (0x82149E30 + 0x1C8 = 0x82149FF8) and swallowed the
+# next function, which has no .pdata entry of its own; lis/addi pairs at 0x82149C18 and 0x82149D30 take its address.
+# A scan of every address built in code that lands on a .pdata end without being a function start found one more,
+# 0x8235E920 (inside 0x8235E7B8, taken at 0x82377B24); 0x82130004 is a zero padding word, not code.
+"0x82149E30" = { size = 0x1C8 }
+"0x82149FF8" = { size = 0x21C }
+"0x8235E7B8" = { size = 0x168 }
+"0x8235E920" = { size = 0x74 }

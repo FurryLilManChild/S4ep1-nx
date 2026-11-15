@@ -22,3 +22,6 @@ Mistakes and wrong conclusions from this port, newest first. Reviewed with Mark 
   GPU" run was really Renut in a -Renut build (banjo_renderer defaults to "native", which falls back to Renut). A cloud
   test only stands in for Mark's run when both take the same code path: list what differs (OS-gated code, defaults,
   the renderer chosen) before saying a cloud result carries over.
+- 2026-11-14: the pointer sweep missed a function whose address is built in code, because the generator had already
+  merged it into the previous function (it ran past that function's .pdata end). Check every lis/addi code address that
+  lands on a .pdata end without being a function start, at kickoff.
