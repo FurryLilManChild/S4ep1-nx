@@ -163,3 +163,13 @@ Newest first.
 - Test: Renut, --banjo_late_input=false, no rebuild: frame thread 845-866 steps in 10 s (emulated 875-889), the read
   8.4-8.6 ms. Default now off (banjo_renut_tuning.cpp, app/s4_switch_test.toml). The per-piece timers removed again;
   the per-10 s counts line stays.
+
+## 2026-11-15 (evening): Switch test 1, and the first shipped variant cache
+
+- Switch test 1 (NRO bea12b74f3acc3fe, late input off), handheld, about 2 minutes (Mark closed it): full speed. First
+  60 s 87 game frames (boot compiles), then 40.6-59.3 fps, GPU 12.7-17.4 ms a frame in the level. uam compiled 173
+  variants on the console (90 ms each); 43 times a draw waited for one, 7.7 s in all: Mark's stutter. The console's
+  DKSH cache started empty.
+- tools/deko3d_variant_cache.py --generic --list out/pc/pipeline_list.bin (the PC runs' 375 pipelines) --runtime-log
+  renut_001.log (109 run-time variants, 52 new): 257 variants, 0 failed, 718 KB, sha256 60e1b7df79d70c88, in 3 s.
+  Put in Mark's out\sd\switch\s4ep1-nx\deko3d_shaders.bin. The NRO unchanged.
