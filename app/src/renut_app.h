@@ -7,7 +7,14 @@
 #include "renut_engine/overlays/fps_overlay_dialog.h"
 #include "renut_engine/renut_logging.h"
 #include "renut_engine/overlays/renut_logging_overlay.h"
-#if !REX_PLATFORM_SWITCH
+// S4ep1-nx: the Windows desktop pieces (path wizard, keyboard and mouse, PC profiler) only on Windows, so the
+// Linux build (cloud boot tests) compiles; it gets the Switch's no-op keyboard hooks.
+#if !REX_PLATFORM_SWITCH && defined(_WIN32)
+#define RENUT_DESKTOP_UI 1
+#else
+#define RENUT_DESKTOP_UI 0
+#endif
+#if RENUT_DESKTOP_UI
 #include "renut_engine/overlays/path_setup_wizard.h"
 #include "renut_engine/overlays/mnk_controls_dialog.h"
 #endif
@@ -34,7 +41,7 @@
 #include "rr6_builtin_config.h"  // generated from app/rr6_switch_defaults.toml and rr6_switch.toml (CMake)
 #endif
 #include "native/nfsmw_nativo_captura.h"
-#if !REX_PLATFORM_SWITCH
+#if RENUT_DESKTOP_UI
 #include "profiler/nfsmw_perfil_pc.h"
 #endif
 #include <rex/ui/window.h>
@@ -122,7 +129,7 @@ public:
         // CPU/GPU profiler window ported from UnleashedRecomp (F5 / banjo_show_profiler).
         profiler_dialog_ = std::make_unique<ProfilerOverlayDialog>(drawer);
         drawer->AddDialog(profiler_dialog_.get());
-#if !REX_PLATFORM_SWITCH
+#if RENUT_DESKTOP_UI
         path_wizard_ = new PathSetupWizard(drawer);
         drawer->AddDialog(path_wizard_);
 
@@ -235,7 +242,7 @@ public:
             const auto* graphics = rt ? rt->graphics_system() : nullptr;
             return graphics ? graphics->presenter() : nullptr;
         });
-#if !REX_PLATFORM_SWITCH
+#if RENUT_DESKTOP_UI
         // Sampling CPU profiler for PC tests (nfsmw_perfil_pc_desde_s; off by default).
         nfsmw::perfil_pc::Arrancar();
 #endif
@@ -254,7 +261,7 @@ public:
 #endif
         banjo::pc_profiler::Stop();
         nfsmw::captura::Parar();
-#if !REX_PLATFORM_SWITCH
+#if RENUT_DESKTOP_UI
         nfsmw::perfil_pc::Parar();
 #endif
         renut::mnk::DetachWindow();
@@ -280,7 +287,7 @@ public:
         renut::dlc::SetUserDataRoot(paths.user_data_root);  // the folder the DLC installer checks for installed ones
     }
 
-#if !REX_PLATFORM_SWITCH
+#if RENUT_DESKTOP_UI
     std::optional<rex::PathConfig> OnFinalizePaths(
         const rex::PathConfig& defaults,
         std::function<void(rex::PathConfig)> resume) override
@@ -310,7 +317,7 @@ public:
 
 private:
     std::string      app_name_;
-#if !REX_PLATFORM_SWITCH
+#if RENUT_DESKTOP_UI
     PathSetupWizard* path_wizard_ = nullptr;
     std::unique_ptr<MnkControlsDialog> mnk_dialog_;
 #endif

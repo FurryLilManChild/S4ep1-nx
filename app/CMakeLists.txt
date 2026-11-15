@@ -139,12 +139,15 @@ if(REXGLUE_PLATFORM_SWITCH)
         src/profiler/stall_watch_switch.cpp
         # PGO profile collection (BANJO_PGO=generate; empty otherwise). From sa2-nx.
         src/banjo_pgo.cpp)
-else()
+elseif(WIN32)
     list(APPEND RENUT_SOURCES src/renut_engine/mnk_controls.cpp
         # Switch profiler counters the native renderer calls (no-ops on PC).
         src/me/me_pc_stubs.cpp
         # Sampling CPU profiler for PC tests, from nfsmw-nx (nfsmw_perfil_pc_desde_s; logs/perfil_pc.csv).
         src/profiler/nfsmw_perfil_pc.cpp)
+else()
+    # S4ep1-nx: the Linux build (cloud boot tests): the Switch's no-op keyboard hooks, no PC profiler.
+    list(APPEND RENUT_SOURCES src/renut_engine/mnk_controls_switch.cpp src/me/me_pc_stubs.cpp)
 endif()
 
 if(WIN32)

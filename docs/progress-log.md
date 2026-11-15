@@ -34,3 +34,20 @@ Newest first.
   as LTCG predicts. Full list: to be written into `docs/d3d-map.md` with the Renut work.
 - PC build adapted: `tools/win/build_pc.ps1` and `boot_test.ps1` use `assets\extracted` (extracting the XBLA package
   with `tools/stfs_extract.py` if missing); TFU's `tfu_job_idle.cpp` and its `tfu_spin_idle.py` step left out.
+
+## 2026-11-14 (night): Linux build, first cloud boot reaches the title screen
+
+- Mark's first PC configure failed: `app/generated/rexglue.cmake` and three FFmpeg config headers were missing from the
+  repo (the tree copy plus `git add -A` skipped files TFU force-tracks). Added (`docs/pitfalls.md`).
+- `tools/post_codegen.py` still ran TFU's `tfu_spin_idle.py` (stops at "sub_826B1398 not found"): removed. Mark's PC
+  build would have hit it too.
+- Linux build (cloud boot tests; Ubuntu 24.04, clang 20, Xvfb, lavapipe): `-march=x86-64-v2` (SSSE3 in the SDK's
+  memory.cpp), host glslangValidator (`-DBANJO_GLSLANG_VALIDATOR=/usr/bin/glslangValidator`), `REXGLUE_DUMP_IMAGE`
+  set for post_codegen, and the Windows desktop UI (path wizard, keyboard and mouse, PC profiler) gated to `_WIN32` in
+  `renut_app.h` (`RENUT_DESKTOP_UI`), with the Switch's no-op keyboard hooks on Linux (`app/CMakeLists.txt`).
+- Boot 1 and 2 (emulated GPU, 130-150 s each, no crash): SEGA logo, Sonic Team logo, then the title screen with
+  "Press the START button" by about 35 s; the attract loop pans the scene. Audio runs (CRI's render driver client
+  registered, SDL frames with data). Screenshots: `out/boot/` (not in git).
+- Checked: the inherited hand natives and localized copies (RR6/TFU's) show "ON" in the enhancements line but hook
+  nothing: `hand.txt` and both localized lists are empty, `generated/hot` holds no functions.
+- Leftover names in the log to rename later: "[tfu] TFU-nx pc build" (build stamp), "rr6_dlc_unlock_keys".

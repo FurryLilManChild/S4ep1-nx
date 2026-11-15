@@ -187,8 +187,7 @@ def main():
     # banjo-nx (2026-10-19, CPU proposal 1): the store cards, after everything else (the inline copies included): every
     # store outside the stack marks its page for Renut's cached vertex and index copies (REX_STORE_CARDS_OFF).
     run(tool('store_cards.py'), '--gen', gen)
-    # TFU-nx (2026-11-12): the job workers' idle call in sub_826B1398 (tools/tfu_spin_idle.py), on the final text.
-    run(tool('tfu_spin_idle.py'), '--gen', gen)
+    # S4ep1-nx: TFU's job-worker idle call (tools/tfu_spin_idle.py, a TFU address) left out.
     if scratch:
         print(f'post_codegen: optimised codegen steps done on {gen}')
         return
