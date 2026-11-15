@@ -343,6 +343,9 @@ bool InitializePresentationParameters(native::Device d, u32 parameters_va) {
   const u32 multisample = p[4];
   const u32 depth_format = p[10];
   u32 front_format = p[16];
+  // S4ep1-nx (2026-11-14): the parameters and each step's result, for Sonic 4's first Renut boot ("InitializePresentationParameters failed").
+  RGPU_INFO("InitializePresentationParameters: {}x{} back 0x{:08X} msaa {} depth 0x{:08X} (auto {}) front 0x{:08X} disable front {} back {}",
+            width, height, back_format, multisample, depth_format, u32(p[9]), u32(p[16]), u32(p[15]), u32(p[14]));
   // The front buffer format, as the scanout reads it.
   if (front_format == 0 || front_format == 0x28280186u)
     front_format = 0x28280106u;
@@ -364,21 +367,27 @@ bool InitializePresentationParameters(native::Device d, u32 parameters_va) {
   // buffer into it and swaps it.
   if (!p[15]) {  // DisableAutoFrontBuffer
     const u32 texture = native::CreateFrontBufferTexture(width, height, front_format);
-    if (!texture)
+    if (!texture) {
+      RGPU_ERROR("InitializePresentationParameters: CreateFrontBufferTexture({}x{}, 0x{:08X}) failed", width, height, front_format);
       return false;
+    }
     d.SetW(native::off::AutoFrontBuffer, texture);
   }
   if (!p[14]) {  // DisableAutoBackBuffer
     const u32 surface = native::CreateSurface(width, height, back_format, multisample, 0);
-    if (!surface)
+    if (!surface) {
+      RGPU_ERROR("InitializePresentationParameters: back buffer CreateSurface({}x{}, 0x{:08X}, msaa {}) failed", width, height, back_format, multisample);
       return false;
+    }
     d.SetW(native::off::AutoBackBuffer, surface);
     native::SetRenderTarget(d, 0, surface);
   }
   if (p[9]) {  // EnableAutoDepthStencil
     const u32 surface = native::CreateSurface(width, height, depth_format, multisample, 0);
-    if (!surface)
+    if (!surface) {
+      RGPU_ERROR("InitializePresentationParameters: depth CreateSurface({}x{}, 0x{:08X}, msaa {}) failed", width, height, depth_format, multisample);
       return false;
+    }
     d.SetW(native::off::AutoDepthStencil, surface);
     native::SetDepthStencilSurface(d, surface);
   }
