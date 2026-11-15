@@ -107,3 +107,17 @@ Newest first.
 - Log: "DRAWS NOT DRAWN: 6367 (no host shader 6367)" in 10 s: Sonic 4 makes its shaders at run time (51 captured to
   out\pc\shader_capture, 45 in this run), none in the build's cache. The next build collects them
   (collect_captured_shaders.cmake, the build folder is out\pc).
+
+## 2026-11-15 (late morning): first picture; tiling hooked; slow motion on both renderers
+
+- Mark's PC, Renut: picture and gameplay, the level loads. The bottom of the screen from row 544 down stays black
+  (his screenshot: the HUD, the sky and clouds above, black below). Sonic 4 draws 1920x1080 with predicated tiling;
+  its BeginTiling (sub_821C2D30) and EndTiling (sub_821C30D0) were never mapped, so Renut saw only the first tile.
+  Found through TileCount (+0x327C). Hooked with their LTCG arguments; the first calls are logged ("[s4] BeginTiling",
+  "[s4] EndTiling") so the rects confirm the split.
+- The earlier "crash" at the level start was boot_test's 60 s limit ("Still running after 60 s: closed it").
+- The game flips its own front buffers (0 D3D Presents between swaps in the diag lines), so TFU's present capture
+  (TFU_PRESENT_DIAG) never fired: no pictures from that run.
+- Slow motion (about half speed by eye) on the emulated GPU too, so not Renut's. 60 game frames a second, audio at
+  full speed. The frame pacer (sub_82488738) sets a 16,667 us deadline from 1.0 * 16666.67 + 0.5 (constants read from
+  the image), as on a 360. A log line every 600 Presents compares real time with the guest clock.

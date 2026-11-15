@@ -23,6 +23,8 @@
 #include <vector>
 
 #include <rex/hook.h>
+#include <rex/chrono/clock.h>
+#include <chrono>
 
 #include "renut_engine/gpu/banjo_renut_select.h"
 #include <rex/types.h>
@@ -831,6 +833,24 @@ BANJO_RENUT_HOOK_RAW(sub_8249E2F8) {
     return p ? u32(*p) : 0;
   };
   auto load_f32 = [&](u32 va) -> float { return std::bit_cast<float>(load_u32(va)); };
+  {  // S4ep1-nx (2026-11-15): the slow-motion check. Every 600 Presents: real time against the guest's clock (mftb),
+     // the game's own-flip flag, and the frame pacer's ticks per microsecond (obj + 12).
+    static uint64_t calls = 0, host0 = 0, guest0 = 0;
+    const uint64_t host_now = uint64_t(std::chrono::duration_cast<std::chrono::microseconds>(
+                                           std::chrono::steady_clock::now().time_since_epoch()).count());
+    const uint64_t guest_now = rex::chrono::Clock::QueryGuestTickCount();
+    if (calls++ % 600 == 0) {
+      if (host0) {
+        const u32 pacer = load_u32(0x82586118);
+        RGPU_INFO("[s4] 600 Presents in {:.2f} s real, {:.2f} s guest clock; own flip {:08X}, pacer ticks/us {}",
+                  double(host_now - host0) / 1e6,
+                  double(guest_now - guest0) / double(rex::chrono::Clock::guest_tick_frequency()),
+                  load_u32(0x8252FA48), pacer ? load_f32(pacer + 12) : 0.0f);
+      }
+      host0 = host_now;
+      guest0 = guest_now;
+    }
+  }
   if (load_u32(0x824F13CC) == 0) {
     ctx.r3.u64 = 0x824F1330;
     sub_82488698(ctx, base);
@@ -858,4 +878,38 @@ BANJO_RENUT_HOOK_RAW(sub_8249E2F8) {
     ctx.r4.u64 = u32(rex::ppc::fctiwz(double(ms)));
     sub_82488738(ctx, base);
   }
+}
+
+// S4ep1-nx (2026-11-15): Sonic 4 draws 1920x1080 with predicated tiling (the colour and depth targets do not fit in
+// EDRAM at once), and its BeginTiling and EndTiling were not mapped: the game's own ran, Renut never knew of the
+// tiles, and only the first tile reached the screen (Mark's screenshot: the bottom from row 544 down black).
+// Found by the device's TileCount (+0x327C): BeginTiling sub_821C2D30 stores it, EndTiling sub_821C30D0 loops over it
+// calling Resolve. Their LTCG arguments, from the generated code:
+//  - BeginTiling (device r3, count r4, rects r5, clear colour r6, clear Z f1, clear stencil r8); r7 unread; the
+//    flags are always 0 (stored as 0 at +0x3434).
+//  - EndTiling (device r3, resolve flags r4, dest texture r5, clear colour r6, clear stencil r8, clear Z f1); r7
+//    unread; no resolve rects (the tiles' own); each tile but the last resolves with flags | 0x100 (colour bound,
+//    +0x3148) | 0x200 (depth bound, +0x3158) and BeginTiling's clear values, the last with the caller's.
+BANJO_RENUT_HOOK_RAW(sub_821C2D30) {
+  static int logged = 0;
+  if (logged < 4) {
+    ++logged;
+    const auto *rects = GuestPtr<const rex::be_u32>(ctx.r5.u32);
+    RGPU_INFO("[s4] BeginTiling: count {}, rects {:08X} (first {} {} {} {}, second {} {} {} {}), colour {:08X}, Z {}, "
+              "stencil {}", ctx.r4.u32, ctx.r5.u32, rects ? u32(rects[0]) : 0, rects ? u32(rects[1]) : 0,
+              rects ? u32(rects[2]) : 0, rects ? u32(rects[3]) : 0, rects && ctx.r4.u32 > 1 ? u32(rects[4]) : 0,
+              rects && ctx.r4.u32 > 1 ? u32(rects[5]) : 0, rects && ctx.r4.u32 > 1 ? u32(rects[6]) : 0,
+              rects && ctx.r4.u32 > 1 ? u32(rects[7]) : 0, ctx.r6.u32, ctx.f1.f64, ctx.r8.u32);
+  }
+  BeginTilingImpl(ctx.r3.u32, ctx.r4.u32, ctx.r5.u32, ctx.r6.u32, 0, float(ctx.f1.f64), ctx.r8.u32);
+}
+BANJO_RENUT_HOOK_RAW(sub_821C30D0) {
+  static int logged = 0;
+  if (logged < 4) {
+    ++logged;
+    RGPU_INFO("[s4] EndTiling: flags {:X}, dest {:08X}, colour {:08X}, Z {}, stencil {}", ctx.r4.u32, ctx.r5.u32,
+              ctx.r6.u32, ctx.f1.f64, ctx.r8.u32);
+  }
+  ctx.r3.u64 = EndTilingImpl(ctx.r3.u32, true, ctx.r4.u32, 0, ctx.r5.u32, ctx.r6.u32, float(ctx.f1.f64), ctx.r8.u32,
+                             0);
 }
