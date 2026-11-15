@@ -95,3 +95,15 @@ Newest first.
     own parts (a once-only init, its own front-buffer flip mode, the frame-time call after).
   - DrawVerticesUP, BeginVertices, UnlockResource, XGRegisterPixelShader: same as Renut's.
 - Adapters in device.cpp, draw.cpp, state.cpp; Linux compile with Renut on: clean.
+
+## 2026-11-15 (morning): Renut boots, runs at 60 fps, black picture
+
+- Mark's PC, Renut, after the LTCG adapters: device created (1920x1080, back and depth surfaces made), title music,
+  59.9 fps, no crash. Picture black.
+- Log: "game gamma ramp applied ... [0]=0/0/0 [255]=0/0/0": an all-zero ramp, the scan-out multiplies every frame to
+  black (TFU's 2026-11-11 symptom, opposite cause). Sonic 4's SetGammaRamp (sub_821B6978) and SetPWLGamma
+  (sub_821B6A48) take two arguments, the ramp in r4 (sub_821CF318 calls them with r4 = its local ramp); TFU's
+  three-argument hooks read r5. Registrations moved to the two-argument hooks.
+- Log: "DRAWS NOT DRAWN: 6367 (no host shader 6367)" in 10 s: Sonic 4 makes its shaders at run time (51 captured to
+  out\pc\shader_capture, 45 in this run), none in the build's cache. The next build collects them
+  (collect_captured_shaders.cmake, the build folder is out\pc).
