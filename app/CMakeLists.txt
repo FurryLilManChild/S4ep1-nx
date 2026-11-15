@@ -81,6 +81,8 @@ set(RENUT_SOURCES
     src/main.cpp
     # TFU-nx (2026-11-12): the build stamp, the first line of every log (app/cmake/tfu_build_stamp.cmake).
     src/tfu_build_stamp.cpp
+    # S4ep1-nx (2026-11-15): counts of the game's frame pieces every 10 s, either renderer (the slow-motion check).
+    src/s4/s4_speed_diag.cpp
     # S4ep1-nx: TFU's job-worker idle wait (src/tfu/tfu_job_idle.cpp, a patch at a TFU address) left out.
     src/rr6_keys.cpp
     # TFU-nx: rr6-nx's src/rr6_game_fixes.cpp (RR6's save-data addresses) removed; TFU's own fixes come as found.

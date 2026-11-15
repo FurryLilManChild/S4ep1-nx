@@ -121,3 +121,15 @@ Newest first.
 - Slow motion (about half speed by eye) on the emulated GPU too, so not Renut's. 60 game frames a second, audio at
   full speed. The frame pacer (sub_82488738) sets a 16,667 us deadline from 1.0 * 16666.67 + 0.5 (constants read from
   the image), as on a 360. A log line every 600 Presents compares real time with the guest clock.
+
+## 2026-11-15 (midday): slow motion is not CPU; counting the game's frame pieces on both renderers
+
+- Mark's PC, Renut, 120 s with the PC profiler (banjo_pc_profile_s=30): every thread mostly idle. Main XThread busy
+  22-26 % (88 % of that in NtWaitForSingleObject), the busiest game worker 11-14 %, Renut's render thread 8-11 %.
+  The guest clock matched real time; 60 Presents a second. So the game waits most of each frame and still moves at
+  about half speed: a pacing or timing difference, not throughput. The emulated GPU runs at full speed.
+- The main loop (sub_821644F8) calls sub_821647A0 twice a pass, then the Present wrapper. The pacer step
+  (sub_82488958) picks its wait from the display refresh (0x824F1390, set at run time) against 60 fps.
+- src/s4/s4_speed_diag.cpp: every 10 s on either renderer, the counts of those pieces, D3D's GPU interrupt handler
+  (sub_821C65E0) and swap-done callback (sub_821C0770), and the refresh and pacer periods. One run on each renderer
+  shows where they differ.
