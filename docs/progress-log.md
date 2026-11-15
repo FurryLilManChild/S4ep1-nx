@@ -146,3 +146,13 @@ Newest first.
 - build_switch.ps1: TFU's tfu_spin_idle step removed, the test folder out\sd\switch\s4ep1-nx, the settings
   app/s4_switch_test.toml (TFU's Switch settings without TFU's forwarder id). NRO title "Sonic the Hedgehog 4:
   Episode I"; the SDK's fallback path /switch/s4ep1-nx/renut.nro.
+
+## 2026-11-15 (afternoon): first Switch NRO; the frame thread is the slow part on Renut
+
+- run_all.cmd on Mark's PC (started by Claude through File Explorer while Mark was away): PC build, two 90 s boot
+  tests, Switch build OK in 15 min (renut.nro 32 MB, sha256 91e72a403569b1d1, out\sd\switch\s4ep1-nx).
+- Speed counters, 10 s windows at the title: the main loop's pieces 1,200 on both renderers. The frame thread's loop
+  (sub_82488B10: pacer step sub_82488958, then sub_8249BAB0, sub_824891C0, sub_82219A00, sub_82496AF0, sub_824960B0,
+  sub_8249ECA8) 867-889 steps on the emulated GPU, 152-284 on Renut. D3D's GPU interrupts 3,954-4,808 and swap-done
+  callbacks 600 on the emulated GPU, 0 and 0 on Renut. Display refresh 60, pacer periods 833,350 ticks on both.
+- Next: wall time per piece of that loop, both renderers.
