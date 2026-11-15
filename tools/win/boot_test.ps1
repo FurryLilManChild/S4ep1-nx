@@ -22,7 +22,7 @@ $log = Join-Path $logDir "boot_$stamp.log"
 $runArgs = @("`"--game_data_root=$game`"", "`"--log_file=$log`"", "`"--user_data_root=$repo\out\pc_user`"", "--log_file_writer=false")
 if ($Renderer) { $runArgs += "--banjo_renderer=$Renderer" }
 # TFU-nx: without Renut (the first builds) the SDK's emulated GPU draws; rr6-nx never loads it (gpu_plugin empty).
-if (-not $Renderer) { $runArgs += "--gpu_plugin=xenos" }
+if (-not $Renderer) { $runArgs += "--banjo_renderer=emulated"; $runArgs += "--gpu_plugin=xenos" }  # S4ep1-nx: a -Renut build otherwise falls back to Renut (banjo_renderer defaults to "native")
 if ($Backend) { $runArgs += "--renut_gpu_backend=$Backend" }  # Renut: d3d12 or vulkan
 if ($Extra) { $runArgs += $Extra }  # TFU-nx: more flags (present_test.ps1)
 Write-Host "Starting the game for $Seconds seconds..."

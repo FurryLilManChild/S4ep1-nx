@@ -299,6 +299,13 @@ public:
             renut::dlc::SetUserDataRoot(defaults.user_data_root);
             return rex::ReXApp::OnFinalizePaths(defaults, std::move(resume));
         }
+        // S4ep1-nx (2026-11-14): a game folder given on the command line that holds default.xex is used as it is. The
+        // wizard waits for a click on its first run, and drew nothing before the renderer was up: tools/win/boot_test.ps1
+        // runs (which pass --game_data_root) sat at a black window for the whole test.
+        if (!defaults.game_data_root.empty() && std::filesystem::exists(defaults.game_data_root / "default.xex")) {
+            renut::dlc::SetUserDataRoot(defaults.user_data_root);
+            return rex::ReXApp::OnFinalizePaths(defaults, std::move(resume));
+        }
         path_wizard_->Init(app_name_, defaults, [resume](rex::PathConfig resolved) {
             renut::dlc::SetUserDataRoot(resolved.user_data_root);
             resume(resolved);
