@@ -183,7 +183,8 @@ banjo_deko3d_depth24 = true
 banjo_deko3d_push_constants = true
 banjo_deko3d_ring_cleaner = true
 banjo_deko3d_kick_submit = true
-banjo_late_input = true
+# S4ep1-nx: off; the controller read is on the frame thread, and the delay slowed the game (docs/progress-log.md).
+banjo_late_input = false
 banjo_deko3d_latency_trim = false
 banjo_display_sync = true
 banjo_display_phase_auto = true

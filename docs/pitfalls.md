@@ -30,3 +30,6 @@ Mistakes and wrong conclusions from this port, newest first. Reviewed with Mark 
   take no arguments, draw calls drop constant ones, SetViewport takes floats. The first Renut run read garbage. For
   every hooked function, list the argument registers it reads in the generated code and compare with the hook's
   signature before the first Renut build.
+- 2026-11-15: banjo_late_input (on by default since banjo-nx) delays the first controller read after each Swap. It
+  assumes the game reads input on the thread that swaps. Sonic 4 reads on a separate frame thread: the delay put the
+  game in slow motion (a quarter speed) on Renut only. Check where a new game reads its controller before keeping it.

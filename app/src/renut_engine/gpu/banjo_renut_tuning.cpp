@@ -449,7 +449,9 @@ REXCVAR_DEFINE_BOOL(banjo_deko3d_latency_trim, false, "Banjo/Enhancements",
                     "part (a fence at each kick submission), so the next frame is recorded, and the game thread "
                     "released, just in time; if the GPU then runs dry it stops for 60 frames. The [latency] line's "
                     "\"input -> GPU done\" and the \"latency trim\" line say what it does. Same pixels");
-REXCVAR_DEFINE_BOOL(banjo_late_input, true, "Banjo/Enhancements",
+// S4ep1-nx (2026-11-15): off. Sonic 4 reads its controller on its frame thread, not on the thread that swaps, so the
+// delay held that thread back: 152-284 steps in 10 s instead of 845-889, the game in slow motion. Off: 845-866.
+REXCVAR_DEFINE_BOOL(banjo_late_input, false, "Banjo/Enhancements",
                     "Input latency (2026-10-19): when the render thread is the slower one, the game's frame waits at "
                     "its Swap for the frame before; its controller read is delayed by the least such wait of the last "
                     "16 frames, less 2 ms, so the frame starts later with newer input and still reaches the render "

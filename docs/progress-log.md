@@ -156,3 +156,10 @@ Newest first.
   sub_8249ECA8) 867-889 steps on the emulated GPU, 152-284 on Renut. D3D's GPU interrupts 3,954-4,808 and swap-done
   callbacks 600 on the emulated GPU, 0 and 0 on Renut. Display refresh 60, pacer periods 833,350 ticks on both.
 - Next: wall time per piece of that loop, both renderers.
+- Wall time per piece (10 s windows): sub_824891C0 (the controller read, XamInputGetState through sub_82223928) took
+  7 ms on the emulated GPU and 7,900-8,500 ms on Renut; every other piece the same on both. Renut's banjo_late_input
+  delays the first controller read after each Swap (for games that read input and swap on one thread); Sonic 4 reads
+  on its frame thread, so the delay held the game's simulation back.
+- Test: Renut, --banjo_late_input=false, no rebuild: frame thread 845-866 steps in 10 s (emulated 875-889), the read
+  8.4-8.6 ms. Default now off (banjo_renut_tuning.cpp, app/s4_switch_test.toml). The per-piece timers removed again;
+  the per-10 s counts line stays.
