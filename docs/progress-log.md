@@ -77,3 +77,21 @@ Newest first.
   XamContentGetLicenseMask's mask (sub_82163E00) and clears its trial flag when set: license_mask now defaults to 1.
   Mark's "Addon" package is avatar items, not a title update; nothing else is needed for the full game.
 - Renut run: "Direct3D_CreateDevice: InitializePresentationParameters failed"; 6 shaders captured. Next to look at.
+
+## 2026-11-15: emulated GPU plays; Renut's hooks fitted to Sonic 4's LTCG signatures
+
+- Mark's PC, emulated GPU: title screen, New Game, play. One note: a small save-file prompt at the title screen (an SDK
+  dialog, not the 360's look); its scale is to fix later.
+- Mark's PC, Renut: black screen. Log: "InitializePresentationParameters: 1920x1080 back 0x00000000 ... depth
+  CreateSurface(... 0x00000780) failed": the hook read garbage arguments. Sonic 4's D3D is linked with LTCG, which
+  drops arguments that never vary and reorders the rest, so TFU's signatures do not hold even where the code matched.
+- Checked each paired hook's argument use in Sonic 4's generated code (which registers it reads, where each goes):
+  - CreateDevice is inlined into the NN setup, sub_82494160 takes nothing (the parameters at 0x82505BC8, the device
+    holder 0x82586168, behaviour flags 0x0C000001); InitializePresentationParameters (sub_821CF318) takes the device.
+  - DrawVertices (device, primitive, count; start 0); DrawIndexedVertices (device, start, count; triangle strip, base 0).
+  - Resolve (device, flags, rect, dest, point, colour r8, stencil r10, Z f1; level, slice, parameters 0).
+  - SetViewport takes six floats (D3D_SetViewport's form), not a D3DVIEWPORT9 pointer.
+  - Present takes nothing: the NN wrapper around the inlined D3D Present; written as a raw hook that keeps the game's
+    own parts (a once-only init, its own front-buffer flip mode, the frame-time call after).
+  - DrawVerticesUP, BeginVertices, UnlockResource, XGRegisterPixelShader: same as Renut's.
+- Adapters in device.cpp, draw.cpp, state.cpp; Linux compile with Renut on: clean.

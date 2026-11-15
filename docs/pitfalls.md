@@ -25,3 +25,8 @@ Mistakes and wrong conclusions from this port, newest first. Reviewed with Mark 
 - 2026-11-14: the pointer sweep missed a function whose address is built in code, because the generator had already
   merged it into the previous function (it ran past that function's .pdata end). Check every lis/addi code address that
   lands on a .pdata end without being a function start, at kickoff.
+- 2026-11-15: Renut's hooks were moved to Sonic 4 by matching code shape and call sites, without checking each
+  function's arguments. Sonic 4's D3D is LTCG-linked (TFU's and LoS1's are not, or less so): CreateDevice and Present
+  take no arguments, draw calls drop constant ones, SetViewport takes floats. The first Renut run read garbage. For
+  every hooked function, list the argument registers it reads in the generated code and compare with the hook's
+  signature before the first Renut build.

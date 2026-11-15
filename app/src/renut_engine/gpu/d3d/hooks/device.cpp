@@ -1315,6 +1315,24 @@ void D3D_InitializeApiState_hook(u32 device) {
 u32 D3D_InitializePresentationParameters_hook(u32 device, u32 parameters) {
   return InitializePresentationParameters(native::DeviceAt(device), parameters) ? 1 : 0;
 }
+// S4ep1-nx (2026-11-15): Sonic 4's Direct3D_CreateDevice does not exist as a function. Its LTCG build inlined it into
+// the NN library's graphics setup: sub_82494160 takes no arguments, allocates the device itself (0x5F00 bytes), stores
+// the behavior flags 0x0C000001 as a constant (+0x5E88), calls the device init sub_821CF800 (device only), and puts the
+// device in the game's holder 0x82586168 (0 first; S_OK or 0x80004005 back). The presentation parameters are a global,
+// 0x82505BC8, which InitializePresentationParameters sub_821CF318 (device only) reads itself.
+// The first Renut boot hooked sub_82494160 with Direct3D_CreateDevice's six arguments and read leftover registers as
+// the parameters (1920x1080, back format 0, "depth format" 0x780).
+constexpr u32 kS4PresentParametersVa = 0x82505BC8;
+constexpr u32 kS4DeviceHolderVa = 0x82586168;
+constexpr u32 kS4BehaviorFlags = 0x0C000001u;
+u32 S4_CreateDevice_hook() {
+  rex::MappedPtr<rex::be_u32> holder(GuestPtr<rex::be_u32>(kS4DeviceHolderVa), kS4DeviceHolderVa);
+  const u32 hr = Direct3D_CreateDevice_hook(0, 1, 0, kS4BehaviorFlags, kS4PresentParametersVa, holder);
+  return hr == 0 ? 0u : 0x80004005u;
+}
+u32 S4_InitializePresentationParameters_hook(u32 device) {
+  return InitializePresentationParameters(native::DeviceAt(device), kS4PresentParametersVa) ? 1 : 0;
+}
 void D3D_CDevice_Uninitialize_hook(u32 device) {
   UninitializeDevice(native::DeviceAt(device));
 }
@@ -1386,11 +1404,11 @@ BANJO_RENUT_UNHOOKED_HOOK(sub_8263D4B8, D3DResource_GetDevice_hook);  // D3DReso
 BANJO_RENUT_UNHOOKED_HOOK(sub_82BC8078, D3D_IsFusion_hook);  // D3D_IsFusion  // katamari-nx: not hooked (signature too weak or ambiguous (sub_824903A8 0.56, next 0.43))  // S4ep1-nx: unhooked as in TFU
 BANJO_RENUT_HOOK(sub_821B6978, D3DDevice_SetGammaRamp3_hook);  // TFU-nx: Katamari sub_824DE218, by hand: twin of PWLGamma, first as in Katamari;  // D3DDevice_SetGammaRamp  // katamari-nx: N&B sub_82636F48, D3DDevice_SetGammaRamp: InitializePresentationParameters calls it, then SetPWLGamma, in N&B's order; sig 0.63 for both  // S4ep1-nx: TFU sub_822D75B0, call at +0x204 of 822E1480
 BANJO_RENUT_HOOK(sub_821B6A48, D3DDevice_SetPWLGamma3_hook);  // TFU-nx: Katamari sub_824DE2F8, by hand: twin of GammaRamp, second as in Katamari;  // D3DDevice_SetPWLGamma  // katamari-nx: N&B sub_82637018, D3DDevice_SetPWLGamma: as above  // S4ep1-nx: TFU sub_822D7690, call at +0x224 of 822E1480
-BANJO_RENUT_HOOK(sub_82494160, Direct3D_CreateDevice_hook);  // TFU-nx: Katamari sub_824D0598, d3d_match 0.92 (next 0.42);  // Direct3D_CreateDevice  // katamari-nx: N&B sub_82634990, Direct3D_CreateDevice: allocates the 0x5700 device (li r3,22272 / 128 alignment, sub_824D0240), calls the device init sub_824E18D0 (XenonGpu_Initialize, InitializePresentationParameters, InitializeApiState); sig 0.39 because N&B inlines that init  // S4ep1-nx: TFU sub_822D8710, Direct3D_CreateDevice: calls the device init, Release, GameXMemFree and the physical allocator, as TFU's; LTCG moved it
+BANJO_RENUT_HOOK(sub_82494160, S4_CreateDevice_hook);  // S4ep1-nx (2026-11-15): Sonic 4's inlined CreateDevice takes no arguments (see S4_CreateDevice_hook);  // TFU-nx: Katamari sub_824D0598, d3d_match 0.92 (next 0.42);  // Direct3D_CreateDevice  // katamari-nx: N&B sub_82634990, Direct3D_CreateDevice: allocates the 0x5700 device (li r3,22272 / 128 alignment, sub_824D0240), calls the device init sub_824E18D0 (XenonGpu_Initialize, InitializePresentationParameters, InitializeApiState); sig 0.39 because N&B inlines that init  // S4ep1-nx: TFU sub_822D8710, Direct3D_CreateDevice: calls the device init, Release, GameXMemFree and the physical allocator, as TFU's; LTCG moved it
 BANJO_RENUT_HOOK(sub_821C4B80, D3DDevice_Release_hook);  // TFU-nx: Katamari sub_824D0368, d3d_match 1.00 (next 0.68);  // D3DDevice_Release  // katamari-nx: N&B sub_82634AE8, signature 1.00 (next 0.59)  // S4ep1-nx: TFU sub_822D84D0, seed tfu d3d_match 0.95 (next 0.74) D3DDevice_Release
 BANJO_RENUT_HOOK(sub_821D5578, D3D_XenonGpu_Initialize_hook);  // TFU-nx: Katamari sub_824ED278, by hand: 0.81;  // D3D_XenonGpu_Initialize  // katamari-nx: N&B sub_8264B748, D3D_XenonGpu_Initialize: called by the device init sub_824E18D0 after the -1 words; sig 0.66/0.23  // S4ep1-nx: TFU sub_822EDAB8, XenonGpu_Initialize: its only caller is the device init sub_821CF800 (TFU: the device init); calls KickOff; TFU match top
 BANJO_RENUT_HOOK(sub_821CF0A8, D3D_InitializeApiState_hook);  // TFU-nx: Katamari sub_824E11A0, d3d_match 1.00 (next 0.17);  // D3D_InitializeApiState  // katamari-nx: N&B sub_82641BC8, D3D_InitializeApiState: called by the device init; reads PresentInterval +13572 and BehaviorFlags +22264; sig 0.58/0.25  // S4ep1-nx: TFU sub_822E1218, seed los1 d3d_match 0.92 (same XDK) InitializeApiState
-BANJO_RENUT_HOOK(sub_821CF318, D3D_InitializePresentationParameters_hook);  // TFU-nx: Katamari sub_824E1408, d3d_match 1.00 (next 0.24);  // D3D_InitializePresentationParameters  // katamari-nx: N&B sub_82641EA8, D3D_InitializePresentationParameters: makes the auto surfaces (+14800..14808) with CreateTexture / CreateSurface; sig 0.65/0.27  // S4ep1-nx: TFU sub_822E1480, seed InitializePresentationParameters: VdQueryVideoMode caller in both; LoS1 0.79 and TFU 0.66 tops agree
+BANJO_RENUT_HOOK(sub_821CF318, S4_InitializePresentationParameters_hook);  // S4ep1-nx (2026-11-15): device only, the parameters are the global 0x82505BC8;  // TFU-nx: Katamari sub_824E1408, d3d_match 1.00 (next 0.24);  // D3D_InitializePresentationParameters  // katamari-nx: N&B sub_82641EA8, D3D_InitializePresentationParameters: makes the auto surfaces (+14800..14808) with CreateTexture / CreateSurface; sig 0.65/0.27  // S4ep1-nx: TFU sub_822E1480, seed InitializePresentationParameters: VdQueryVideoMode caller in both; LoS1 0.79 and TFU 0.66 tops agree
 BANJO_RENUT_UNHOOKED_HOOK(sub_824E1B50, D3D_CDevice_Uninitialize_hook);  // TFU-nx: no counterpart in TFU (docs/renut-map.md);  // D3D_CDevice_Uninitialize  // katamari-nx: N&B sub_82642568, D3D_CDevice_Uninitialize: VdShutdownEngines, VdSetGraphicsInterruptCallback; sig 0.40/0.26  // S4ep1-nx: unhooked as in TFU
 BANJO_RENUT_HOOK(sub_821C61C8, KickOff_hook);  // TFU-nx: Katamari sub_824E0298, d3d_match 1.00 (next 0.38);  // D3D_CDevice_KickOff  // katamari-nx: N&B sub_821DFFF0, signature 0.80 (next 0.41)  // S4ep1-nx: TFU sub_822D9BE8, seed los1 d3d_match 0.94 (same XDK) CDevice::KickOff
 BANJO_RENUT_HOOK(sub_821C5EE8, KickOffSegment_hook);  // TFU-nx: Katamari sub_824E0110, d3d_match 0.96 (next 0.25);  // D3D_CDevice_KickOffSegment  // katamari-nx: N&B sub_821DFC08, D3D_CDevice_KickOffSegment: sig 0.71/0.31; CommandBuffer +13492, InKickOff +13216 as the zones say  // S4ep1-nx: TFU sub_822D9A60, seed los1 d3d_match 0.97 (same XDK) CDevice::KickOffSegment

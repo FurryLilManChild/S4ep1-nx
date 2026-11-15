@@ -743,17 +743,41 @@ void D3DDevice_SetPixelShader_hook(u32 device, u32 shader) {
   native::SetPixelShader(native::DeviceAt(device), shader);
 }
 
+// S4ep1-nx (2026-11-15): Sonic 4's D3D is linked with LTCG, which drops arguments that are always the same at every
+// call site and renumbers the rest. Checked in the generated code of each function (which registers it reads, and
+// where each value goes): these adapters take Sonic 4's arguments and call Renut's hook with the dropped ones filled.
+
+// DrawVertices sub_821BFE48: (device r3, primitive r4, vertex count r5); the start vertex is always 0 (r23 = li 0,
+// stepped by the count of each packet).
+void S4_DrawVertices_hook(u32 device, u32 primitive, u32 vertex_count) {
+  D3DDevice_DrawVertices_hook(device, primitive, 0, vertex_count);
+}
+
+// DrawIndexedVertices sub_821C0238: (device r3, start index r4, index count r5); the primitive type is always 6
+// (triangle strip: "ori r30, r7, 6" in the draw packet, and each split repeats 2 indices) and the base vertex 0.
+void S4_DrawIndexedVertices_hook(u32 device, u32 start_index, u32 index_count) {
+  D3DDevice_DrawIndexedVertices_hook(device, 6, 0, start_index, index_count);
+}
+
+// Resolve sub_821C1C80: (device r3, flags r4, rect r5, dest texture r6, point r7, clear colour r8, r9 unread,
+// clear stencil r10, clear Z f1). r8 is loaded as a vector (lvx128, a constant when null); r10 goes to the depth clear
+// (sub_821C1710 ORs it under Z << 8). Dest level, slice and the parameters are always 0, none read from the stack.
+void S4_Resolve_hook(u32 device, u32 flags, u32 rect_va, u32 dest_texture, u32 point_va, u32 color_va,
+                     u32 /*r9*/, u32 clear_stencil, double clear_z) {
+  D3DDevice_Resolve_hook(device, flags, rect_va, dest_texture, point_va, 0, 0, color_va, clear_z, 0, clear_stencil, 0);
+}
+
 } // namespace
 
-BANJO_RENUT_HOOK(sub_821BFE48, D3DDevice_DrawVertices_hook);  // TFU-nx: Katamari sub_824D9D08, d3d_match 1.00 (next 0.71);  // D3DDevice_DrawVertices  // katamari-nx: N&B sub_821FB880, signature 0.90 (next 0.77)  // S4ep1-nx: TFU sub_8281E2B8, seed los1 d3d_match 0.98 (same XDK) D3DDevice_DrawVertices
-BANJO_RENUT_HOOK(sub_821C0238, D3DDevice_DrawIndexedVertices_hook);  // TFU-nx: Katamari sub_824DA0F0, d3d_match 1.00 (next 0.72);  // D3DDevice_DrawIndexedVertices  // katamari-nx: N&B sub_8263F358, signature 0.87 (next 0.78)  // S4ep1-nx: TFU sub_8281E6A0, seed los1 d3d_match 0.90 (same XDK) D3DDevice_DrawIndexedVertices
+BANJO_RENUT_HOOK(sub_821BFE48, S4_DrawVertices_hook);  // TFU-nx: Katamari sub_824D9D08, d3d_match 1.00 (next 0.71);  // D3DDevice_DrawVertices  // katamari-nx: N&B sub_821FB880, signature 0.90 (next 0.77)  // S4ep1-nx: TFU sub_8281E2B8, seed los1 d3d_match 0.98 (same XDK) D3DDevice_DrawVertices
+BANJO_RENUT_HOOK(sub_821C0238, S4_DrawIndexedVertices_hook);  // TFU-nx: Katamari sub_824DA0F0, d3d_match 1.00 (next 0.72);  // D3DDevice_DrawIndexedVertices  // katamari-nx: N&B sub_8263F358, signature 0.87 (next 0.78)  // S4ep1-nx: TFU sub_8281E6A0, seed los1 d3d_match 0.90 (same XDK) D3DDevice_DrawIndexedVertices
 BANJO_RENUT_UNHOOKED_HOOK(sub_8281EAF8, D3DDevice_DrawIndexedTessellatedVertices_hook);  // TFU-nx: Katamari sub_824DA9C0, d3d_match 0.99 (next 0.66);  // D3DDevice_DrawIndexedTessellatedVertices  // katamari-nx: N&B sub_821FF958, signature 0.86 (next 0.65)  // S4ep1-nx: no counterpart found in Sonic 4 (docs/renut-map.md, still open)
 BANJO_RENUT_HOOK(sub_821BFE00, D3DDevice_DrawVerticesUP_hook);  // TFU-nx: no counterpart in TFU (docs/renut-map.md);  // D3DDevice_DrawVerticesUP  // katamari-nx: N&B sub_821FD698, D3DDevice_DrawVerticesUP: BeginVertices-style reserve, reads VerticesRingEnd +13428 (N&B +13444) and the flags +10940; sig 0.69/0.55  // S4ep1-nx: was unhooked in TFU (sub_824D9758); D3DDevice_DrawVerticesUP: LoS1 d3d_match 1.00 (same XDK)
 BANJO_RENUT_UNHOOKED_HOOK(sub_8263F2B8, D3DDevice_DrawIndexedVerticesUP_hook);  // D3DDevice_DrawIndexedVerticesUP  // katamari-nx: not hooked (D3DDevice_DrawIndexedVerticesUP: no counterpart found (sig 0.32))  // S4ep1-nx: unhooked as in TFU
 BANJO_RENUT_HOOK(sub_821BF968, D3DDevice_BeginVertices_hook);  // TFU-nx: no counterpart in TFU (docs/renut-map.md);  // D3DDevice_BeginVertices  // katamari-nx: N&B sub_821FBD30, signature 0.87 (next 0.70)  // S4ep1-nx: was unhooked in TFU (sub_824D92B8); D3DDevice_BeginVertices: LoS1 d3d_match 1.00 (same XDK)
 BANJO_RENUT_HOOK(sub_821B2FD0, D3DDevice_ClearF_hook);  // TFU-nx: Katamari sub_824F3248, d3d_match 1.00 (next 0.41);  // D3DDevice_ClearF  // katamari-nx: N&B sub_8224F110, D3DDevice_ClearF: sig 0.71/0.40; reads the targets +12432.. and tiling surfaces +12720.. as N&B +12448 / +12736  // S4ep1-nx: TFU sub_822F67F0, seed los1 d3d_match 1.00 (same XDK) D3DDevice_ClearF
 BANJO_RENUT_UNHOOKED_HOOK(sub_822F6918, D3DDevice_Clear_hook);  // TFU-nx: Katamari sub_824F3370, d3d_match 1.00 (next 0.37);  // D3DDevice_Clear  // katamari-nx: N&B sub_8224F238, signature 0.84 (next 0.36)  // S4ep1-nx: no counterpart found in Sonic 4 (docs/renut-map.md, still open)
-BANJO_RENUT_HOOK(sub_821C1C80, D3DDevice_Resolve_hook);  // TFU-nx: Katamari sub_824F12B8, by hand: 0.82, between ClearF/Clear and SetPredication as in Katamari;  // D3DDevice_Resolve  // katamari-nx: N&B sub_821FC7A0, signature 0.78 (next 0.33)  // S4ep1-nx: TFU sub_822F47A8, seed Resolve: called by Present in both; TFU d3d_match top 0.48
+BANJO_RENUT_HOOK(sub_821C1C80, S4_Resolve_hook);  // TFU-nx: Katamari sub_824F12B8, by hand: 0.82, between ClearF/Clear and SetPredication as in Katamari;  // D3DDevice_Resolve  // katamari-nx: N&B sub_821FC7A0, signature 0.78 (next 0.33)  // S4ep1-nx: TFU sub_822F47A8, seed Resolve: called by Present in both; TFU d3d_match top 0.48
 BANJO_RENUT_UNHOOKED_HOOK_SHARED(sub_82246798, D3DDevice_BeginTiling_hook);  // D3DDevice_BeginTiling: N&B's update form, see below  // S4ep1-nx: unhooked as in TFU
 BANJO_RENUT_UNHOOKED_HOOK(sub_821E17C0, D3DDevice_EndTiling_hook);  // D3DDevice_EndTiling: N&B's update form, see below  // S4ep1-nx: unhooked as in TFU
 // katamari-nx (2026-10-30): XDK 2.0.5632's BeginTiling (sub_824EFBC8: it stores the count at TileCount +0x31C4 and
@@ -782,6 +806,56 @@ BANJO_RENUT_UNHOOKED_HOOK_RAW(sub_822F3B78) {  // TFU-nx: EndTiling: d3d_match 1
 }
 BANJO_RENUT_UNHOOKED_HOOK_SHARED(sub_82237FE8, D3DDevice_BeginExport_hook);  // D3DDevice_BeginExport  // katamari-nx: not hooked (D3DDevice_BeginExport: XDK 2.0.5632 has no memexport functions (as feedingfrenzy2-nx found for 6534))  // S4ep1-nx: unhooked as in TFU
 BANJO_RENUT_UNHOOKED_HOOK_SHARED(sub_82237D80, D3DDevice_EndExport_hook);  // D3DDevice_EndExport  // katamari-nx: not hooked (D3DDevice_EndExport: as above)  // S4ep1-nx: unhooked as in TFU
-BANJO_RENUT_HOOK(sub_8249E2F8, D3DDevice_Present_hook);  // TFU-nx: Katamari sub_824E9428, d3d_match 0.92 (next 0.34);  // D3DDevice_Present  // katamari-nx: N&B sub_826352B8, D3DDevice_Present: SynchronizeToPresentationInterval sub_824E89E8, Resolve sub_824F12B8, KickOff sub_824E0298, then Swap sub_824E8E90; sig 0.43/0.26  // S4ep1-nx: TFU sub_822E98D8, seed Present: the same callees as TFU's (SetRenderTarget, KickOff, Swap, SynchronizeToPresentationInterval, Resolve, SetScissorRect, sub_822C0450's pair); outside the D3D block (LTCG)
+BANJO_RENUT_UNHOOKED_HOOK(sub_8249E2F8_whole, D3DDevice_Present_hook);  // S4ep1-nx: replaced by the raw hook at the end of the file; was  // TFU-nx: Katamari sub_824E9428, d3d_match 0.92 (next 0.34);  // D3DDevice_Present  // katamari-nx: N&B sub_826352B8, D3DDevice_Present: SynchronizeToPresentationInterval sub_824E89E8, Resolve sub_824F12B8, KickOff sub_824E0298, then Swap sub_824E8E90; sig 0.43/0.26  // S4ep1-nx: TFU sub_822E98D8, seed Present: the same callees as TFU's (SetRenderTarget, KickOff, Swap, SynchronizeToPresentationInterval, Resolve, SetScissorRect, sub_822C0450's pair); outside the D3D block (LTCG)
 BANJO_RENUT_HOOK(sub_821B9EC8, D3DDevice_SetVertexShader_hook);  // TFU-nx: Katamari sub_824D4930, d3d_match 0.99 (next 0.90);  // D3DDevice_SetVertexShader  // katamari-nx: N&B sub_821F90D8, signature 0.87 (next 0.75)  // S4ep1-nx: TFU sub_822E3E80, D3DDevice_SetVertexShader: reads and writes the device's vertex shader +0x3248 (LoS1 12872); TFU match top
 BANJO_RENUT_HOOK(sub_821B9B20, D3DDevice_SetPixelShader_hook);  // TFU-nx: Katamari sub_824D4630, d3d_match 0.96 (next 0.88);  // D3DDevice_SetPixelShader  // katamari-nx: N&B sub_821F58A8, signature 0.85 (next 0.73)  // S4ep1-nx: TFU sub_822E3B80, D3DDevice_SetPixelShader: reads and writes the device's pixel shader +0x3244 (LoS1 12868); TFU match top
+
+// S4ep1-nx (2026-11-15): Sonic 4's Present (sub_8249E2F8) takes no arguments: the game's NN layer wraps it around
+// the inlined D3D Present. Its parts, from the generated code:
+//  1. once: if [0x824F13CC] is 0, sub_82488698(0x824F1330);
+//  2. if [0x8252FA48] is 0, D3D Present on the device at [0x82586168] (Renut's hook); otherwise the game flips its own
+//     two front buffers: SynchronizeToPresentationInterval(device, 0), Swap(device, [0x82505BC0 + 4 * [0x82586180]],
+//     0), sub_82493890 (flips the index);
+//  3. if [0x82586118] is set: sub_82223E98([obj + 8]), then sub_82488738(obj, the frame time in ms from three float
+//     constants).
+REX_EXTERN(__imp__sub_8249E2F8);
+REX_EXTERN(sub_82488698);
+REX_EXTERN(sub_821C0920);
+REX_EXTERN(sub_821C0E58);
+REX_EXTERN(sub_82493890);
+REX_EXTERN(sub_82223E98);
+REX_EXTERN(sub_82488738);
+BANJO_RENUT_HOOK_RAW(sub_8249E2F8) {
+  auto load_u32 = [](u32 va) -> u32 {
+    const auto *p = GuestPtr<const rex::be_u32>(va);
+    return p ? u32(*p) : 0;
+  };
+  auto load_f32 = [&](u32 va) -> float { return std::bit_cast<float>(load_u32(va)); };
+  if (load_u32(0x824F13CC) == 0) {
+    ctx.r3.u64 = 0x824F1330;
+    sub_82488698(ctx, base);
+  }
+  const u32 device = load_u32(0x82586168);
+  if (load_u32(0x8252FA48) == 0) {
+    D3DDevice_Present_hook(device);
+  } else {
+    ctx.r3.u64 = device;
+    ctx.r4.u64 = 0;
+    sub_821C0920(ctx, base);
+    ctx.r3.u64 = device;
+    ctx.r4.u64 = load_u32(0x82505BC0 + 4 * load_u32(0x82586180));
+    ctx.r5.u64 = 0;
+    sub_821C0E58(ctx, base);
+    sub_82493890(ctx, base);
+  }
+  const u32 obj = load_u32(0x82586118);
+  if (obj) {
+    ctx.r3.u64 = load_u32(obj + 8);
+    sub_82223E98(ctx, base);
+    const float ms = float(std::fma(double(load_f32(0x824D9B14)), double(load_f32(0x82094ADC)),
+                                    double(load_f32(0x8207C954))));
+    ctx.r3.u64 = load_u32(0x82586118);
+    ctx.r4.u64 = u32(rex::ppc::fctiwz(double(ms)));
+    sub_82488738(ctx, base);
+  }
+}
