@@ -2,6 +2,8 @@
 // futari_vblank_phase_auto (the user's own port, docs/futari-notes.md "Input lag"), for a game paced by the frame
 // limiter rather than by its vertical blank, whose frames take more than one refresh from release to image.
 #include "renut_engine/display_sync.h"
+#include "renut_engine/Fps.h"
+#include "renut_engine/hooks.h"  // S4ep1-nx: fpsManager (the FPS counter)
 
 #include <algorithm>
 #include <atomic>
@@ -361,6 +363,9 @@ void AtRefresh(uint64_t now, uint64_t period) {
   if (newest < 0)
     return;  // dropped meanwhile (eight presents without a refresh)
   ++g_refreshes_with_image;
+  // S4ep1-nx (2026-11-15): the FPS counter counts what the player sees: refreshes that showed a new image.
+  static FPSCounter *const shown_counter = fpsManager.GetCreateCounter("Shown");
+  shown_counter->Tick();
   g_superseded += uint64_t(newest);
   const Shown s = g_shown[(g_shown_head + uint32_t(newest)) % kShown];
   g_shown_head = (g_shown_head + uint32_t(newest) + 1) % kShown;

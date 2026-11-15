@@ -173,3 +173,18 @@ Newest first.
 - tools/deko3d_variant_cache.py --generic --list out/pc/pipeline_list.bin (the PC runs' 375 pipelines) --runtime-log
   renut_001.log (109 run-time variants, 52 new): 257 variants, 0 failed, 718 KB, sha256 60e1b7df79d70c88, in 3 s.
   Put in Mark's out\sd\switch\s4ep1-nx\deko3d_shaders.bin. The NRO unchanged.
+
+## 2026-11-15 (evening): Switch test 2: speed-ups in the GPU dips; the pacer rule and the FPS counter
+
+- Test 2 (variant cache 60e1b7df): much less stutter; the display showed 45.6-60.1 new images a second (GPU 11-21 ms a
+  frame); Mark saw the game run up to about 1.5x. Frame-thread steps: about 600 in 10 s at 60 fps, 770-874 at 45-50 fps.
+- The pacer (sub_82488958, object 0x824F0FA8): it polls the event, then spins until the event (set by the Present
+  wrapper's tail, sub_82223E98) or its deadline (+24; the tail's sub_82488738 sets it to now + 16,667 us; the pacer
+  moves it on by the period, +32, once passed). So a frame later than 16.7 ms gives a deadline step and then a Present
+  step. On a 360 Presents land on refreshes (16.7 / 33.3 ms), which gives 60 steps a second; Renut's land anywhere
+  (20 ms: two steps in 20 ms, 100 a second).
+- s4_pacer_fix (on): the Present hook counts pacer entries since the last Present; if a deadline step ran since (more
+  entries than the Present's own wake gives), it neither sets the event nor moves the deadline. The [s4 speed] line
+  counts Presents that woke the frame thread and those held back.
+- FPS counter: no game hook ticked a counter for Sonic 4 (TFU's and Katamari's were address hooks), so the overlay was
+  empty. Now ticked by the display thread at each refresh with a new image ("Shown"); cpu/gpu lines only if set.

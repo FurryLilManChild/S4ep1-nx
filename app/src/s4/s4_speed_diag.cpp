@@ -12,6 +12,8 @@
 #include <rex/hook.h>
 #include <rex/logging.h>
 
+#include "s4/s4_pacer.h"
+
 #include <atomic>
 #include <chrono>
 #include <cstdint>
@@ -57,9 +59,11 @@ void MaybeReport(const uint8_t *base) {
   if (now < due || !next.compare_exchange_strong(due, now + 10000))
     return;
   REXLOG_INFO("[s4 speed] 10 s: main-loop pieces {}, pacer steps {}, deadline waits {}, D3D GPU interrupts {}, "
-              "D3D swap-done callbacks {}; display refresh {}, pacer periods {} and {} ticks",
+              "D3D swap-done callbacks {}; Presents that woke the frame thread {}, held back (a deadline step had run) {}; "
+              "display refresh {}, pacer periods {} and {} ticks",
               g_update.exchange(0), g_pacer.exchange(0), g_wait.exchange(0), g_interrupt.exchange(0),
-              g_swap_done.exchange(0), RdF32(base, 0x824F1390), Rd64(base, 0x824F0FA8 + 32),
+              g_swap_done.exchange(0), s4::g_present_wakes.exchange(0), s4::g_present_skips.exchange(0),
+              RdF32(base, 0x824F1390), Rd64(base, 0x824F0FA8 + 32),
               Rd64(base, 0x824F1330 + 32));
 }
 }  // namespace
@@ -71,6 +75,7 @@ REX_HOOK_RAW(sub_821647A0) {
 }
 REX_HOOK_RAW(sub_82488958) {
   g_pacer.fetch_add(1, std::memory_order_relaxed);
+  s4::g_pacer_entries.fetch_add(1, std::memory_order_release);
   __imp__sub_82488958(ctx, base);
 }
 REX_HOOK_RAW(sub_82488698) {

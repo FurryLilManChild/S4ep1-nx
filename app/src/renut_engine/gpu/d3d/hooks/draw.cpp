@@ -24,6 +24,8 @@
 
 #include <rex/hook.h>
 #include <rex/chrono/clock.h>
+#include <rex/cvar.h>
+#include "s4/s4_pacer.h"
 #include <chrono>
 
 #include "renut_engine/gpu/banjo_renut_select.h"
@@ -820,6 +822,10 @@ BANJO_RENUT_HOOK(sub_821B9B20, D3DDevice_SetPixelShader_hook);  // TFU-nx: Katam
 //     0), sub_82493890 (flips the index);
 //  3. if [0x82586118] is set: sub_82223E98([obj + 8]), then sub_82488738(obj, the frame time in ms from three float
 //     constants).
+REXCVAR_DEFINE_BOOL(s4_pacer_fix, true, "S4ep1-nx",
+                    "Sonic 4's frame thread: a Present that comes after a deadline step does not wake it again, so "
+                    "the game steps 60 times a second when frames are late (off: the game's own rule, which ran up "
+                    "to 1.45x in the GPU dips). draw.cpp, sub_8249E2F8's hook.");
 REX_EXTERN(__imp__sub_8249E2F8);
 REX_EXTERN(sub_82488698);
 REX_EXTERN(sub_821C0920);
@@ -868,8 +874,25 @@ BANJO_RENUT_HOOK_RAW(sub_8249E2F8) {
     sub_821C0E58(ctx, base);
     sub_82493890(ctx, base);
   }
+  // S4ep1-nx (2026-11-15, s4_pacer_fix): the frame thread (sub_82488B10) steps when this Present sets its event OR
+  // when its deadline (the last Present plus 16,667 us) passes first. On a 360 the Presents land on refreshes (16.7 or
+  // 33.3 ms apart), so a late frame gives one deadline step and one Present step in 33.3 ms: 60 steps a second. With
+  // Renut a Present can come at any time: a 20 ms frame gave a deadline step at 16.7 ms and a Present step at 20 ms,
+  // two in 20 ms: the game ran up to 1.45x in the console's GPU dips (Switch test 2: 77-87 steps a second at 45-50
+  // fps, 60 at 60 fps). With the fix a Present that comes after a deadline step does not wake the frame thread and
+  // leaves its deadline on the 16.7 ms grid; one that comes before it (a frame on time) works as before.
+  static u32 s4_entries_at_last = 0;
+  static bool s4_last_woke = false;
+  const u32 s4_entries = s4::g_pacer_entries.load(std::memory_order_acquire);
+  const u32 s4_since = s4_entries - s4_entries_at_last;
+  const bool s4_hold = REXCVAR_GET(s4_pacer_fix) && s4_since > (s4_last_woke ? 1u : 0u);
+  s4_entries_at_last = s4_entries;
   const u32 obj = load_u32(0x82586118);
-  if (obj) {
+  s4_last_woke = obj && !s4_hold;
+  if (obj && s4_hold) {
+    s4::g_present_skips.fetch_add(1, std::memory_order_relaxed);
+  } else if (obj) {
+    s4::g_present_wakes.fetch_add(1, std::memory_order_relaxed);
     ctx.r3.u64 = load_u32(obj + 8);
     sub_82223E98(ctx, base);
     const float ms = float(std::fma(double(load_f32(0x824D9B14)), double(load_f32(0x82094ADC)),
