@@ -110,10 +110,19 @@ if (-not (Test-Path $glslang)) {
 }
 
 # 3b. Renut's shader tools need Python's xxhash module (one time).
+# S4ep1-nx (2026-11-14): one Python for everything. CMake's find_package(Python3) picked a different python.exe than the
+# `python` on PATH (Mark's first -Renut configure: xxhash installed for one, checked in the other), so the build is
+# told which one to use, and the module checks and installs go to that same one.
+$py = (Get-Command python -ErrorAction SilentlyContinue).Source
+if (-not $py) { Write-Host 'No python on PATH. Tell Claude.'; exit 1 }
+$cfgArgs += "-DPython3_EXECUTABLE=$py"
+Write-Host "Python: $py"
 if ($Renut) {
-    python -c "import xxhash" 2>$null
+    & $py -c "import xxhash" 2>$null
     if ($LASTEXITCODE -ne 0) {
-        Step 'Installing the Python xxhash module (one time)' 'pip_xxhash.log' { python -m pip install --user xxhash }
+        Step 'Installing the Python xxhash module (one time)' 'pip_xxhash.log' { & $py -m pip install --user xxhash }
+        & $py -c "import xxhash" 2>$null
+        if ($LASTEXITCODE -ne 0) { Write-Host "xxhash still missing for $py after the install. Tell Claude."; exit 1 }
     }
     $cfgArgs += "-DRENUT_SHADER_DUMP_DIR=$(Join-Path $repo 'out\renut_shader_dump')"
 
