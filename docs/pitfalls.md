@@ -12,3 +12,8 @@ Mistakes and wrong conclusions from this port, newest first. Reviewed with Mark 
   CMake's find_package(Python3) chose another python.exe. Fixed by passing -DPython3_EXECUTABLE (the PATH python) and
   checking the module in that one. Lesson: a cloud test only covers the build path it ran; say which path was tested,
   and when a Windows path has an interpreter or tool lookup, make the script pin it instead of trusting two lookups to agree.
+- 2026-11-14: after porting Renut I compile-checked only the files I had changed; a layout-dependent static_assert in
+  an unchanged file (command_buffers.cpp's last snapshot chunk: 24 bytes for Sonic 4) and a missing tool
+  (dump_shaders.py, never in this tree; TFU always had its dump folder) would have failed Mark's build one at a time.
+  Check every source of the target (`ninja -t commands` plus `-fsyntax-only`) and walk the build script's steps for
+  tools or folders the base project had on disk but never committed.

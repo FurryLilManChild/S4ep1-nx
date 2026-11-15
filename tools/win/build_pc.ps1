@@ -125,6 +125,22 @@ if ($Renut) {
         if ($LASTEXITCODE -ne 0) { Write-Host "xxhash still missing for $py after the install. Tell Claude."; exit 1 }
     }
     $cfgArgs += "-DRENUT_SHADER_DUMP_DIR=$(Join-Path $repo 'out\renut_shader_dump')"
+    # S4ep1-nx (2026-11-14): the shader dump directory must exist before the configure: when it does not, Renut's
+    # gpu.cmake runs Renut's own tools/dump_shaders.py, which is not in this tree (TFU-nx always had the directory).
+    # Ours: tools/renut_shader_dump.py takes the containers compiled into default.xex (8 in Sonic 4) from the code
+    # generator's image; the rest Renut captures at run time and the next build adds them.
+    $dump = Join-Path $repo 'out\renut_shader_dump'
+    if (-not (Test-Path $dump)) {
+        $image = Join-Path $repo 'out\renut_image.bin'
+        if (Test-Path $image) {
+            Step 'Dumping the shaders in default.xex (one time)' 'shader_dump.log' {
+                & $py (Join-Path $repo 'tools\renut_shader_dump.py') --image $image --out $dump
+            }
+        } else {
+            New-Item -ItemType Directory -Force -Path $dump | Out-Null
+            Write-Host 'out\renut_shader_dump made empty (no code image yet): Renut captures the shaders at run time.'
+        }
+    }
 
     # 3c. XenosRecomp links Microsoft's DXC (Windows x64 binaries, kept out of git as rr6-nx did). One time: taken
     #     from renderbag/dxc-bin at the pinned commit (docs/upstream.md).
