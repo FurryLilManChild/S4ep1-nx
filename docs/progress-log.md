@@ -59,3 +59,10 @@ Newest first.
   passed by value, GetFunction imports dropped (not linked in Sonic 4), queued.cpp's chunk count 42.
 - Tools: `tools/s4_d3d_propagate.py`, `tools/s4_renut_retarget.py`, `tools/s4_device_offsets.py`.
 - Compile check with Renut on (Linux): the hook files, d3d_native_state.cpp and queued.cpp clean.
+- Renut build check in the cloud (Mark's OK for DXC, 2026-11-14): with the pinned dxc-bin (`12395e36`), the shader dump
+  from default.xex (8 containers), XenosRecomp and every generated header built (855 of 855); all 79 app and Renut
+  sources pass `-fsyntax-only` with the build's own commands. Windows-only code (D3D12 backend, path wizard) is TFU's,
+  unchanged.
+- Sweep of other games' code still in the tree: N&B's keyboard/mouse pad mask, N&B's photo hook, banjo's native PM4
+  renderer (masseffect_renderer_native) and RR6's DLC unlock are off by default or never registered; widescreen.cpp's
+  N&B hooks are compiled out. Inert, to be removed in a cleanup.
