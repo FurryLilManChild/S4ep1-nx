@@ -1,5 +1,5 @@
 # TFU-nx: builds the Switch NRO on Mark's PC with devkitPro (C:\devkitPro), Renut's renderer on deko3d, and puts the
-# test folder together in out\sd\switch\tfu-nx\ (renut.nro, renut.toml) with the NRO's SHA-256. Every step's full
+# test folder together in out\sd\switch\s4ep1-nx\ (renut.nro, renut.toml) with the NRO's SHA-256. Every step's full
 # output goes to out\logs\.
 #
 # Usage (from C:\TFU-nx): powershell -ExecutionPolicy Bypass -File tools\win\build_switch.ps1 [-Jobs N] [-Clean]
@@ -26,7 +26,7 @@ New-Item -ItemType Directory -Force -Path $logDir | Out-Null
 $build = Join-Path $repo 'out\switch'
 $shaders = Join-Path $repo 'out\renut_switch'
 $hostShaders = Join-Path $repo 'out\renut_switch_host'
-$sdOut = Join-Path $repo 'out\sd\switch\tfu-nx'
+$sdOut = Join-Path $repo 'out\sd\switch\s4ep1-nx'
 $devkitPro = 'C:\devkitPro'
 
 function Step($name, $logName, [scriptblock]$body) {
@@ -90,10 +90,7 @@ if ($missing.Count -gt 0) {
 if ($Jobs -le 0) { $Jobs = [math]::Max(1, [math]::Min(4, [int]([Environment]::ProcessorCount / 2))) }
 if ($Clean -and (Test-Path $build)) { Remove-Item -Recurse -Force $build }
 
-# 1b. TFU's own change to the generated code (tools/tfu_spin_idle.py: the job workers' idle call), as build_pc.ps1 does.
-python (Join-Path $repo 'tools\tfu_spin_idle.py')
-if ($LASTEXITCODE -ne 0) { Write-Host 'tools\tfu_spin_idle.py failed (above). Tell Claude.'; exit 1 }
-
+# 1b. S4ep1-nx: TFU's tools\tfu_spin_idle.py step (a TFU-only change to the generated code) removed.
 # 2. The NRO's shader table: the PC build's without the DXIL (tools/renut_switch_shader_cache.py), and the deko3d
 #    package's source, which points the assembler at deko3d_glsl.bin on this PC.
 Step 'Shader table for the Switch' 'switch_shaders.log' {
@@ -148,9 +145,9 @@ New-Item -ItemType Directory -Force -Path $sdOut | Out-Null
 Copy-Item $nro (Join-Path $sdOut 'renut.nro') -Force
 # The settings must parse: the SDK loads them before its log opens, and one bad line (the first test: a duplicate key)
 # silently left every setting at its default.
-$toml = Join-Path $repo 'app\tfu_switch_test.toml'
+$toml = Join-Path $repo 'app\s4_switch_test.toml'
 python -c "import sys, tomllib; tomllib.load(open(sys.argv[1], 'rb'))" $toml
-if ($LASTEXITCODE -ne 0) { Write-Host 'app\tfu_switch_test.toml does not parse (above). Tell Claude.'; exit 1 }
+if ($LASTEXITCODE -ne 0) { Write-Host 'app\s4_switch_test.toml does not parse (above). Tell Claude.'; exit 1 }
 Copy-Item $toml (Join-Path $sdOut 'renut.toml') -Force
 $hash = (Get-FileHash $nro -Algorithm SHA256).Hash.ToLower()
 Set-Content -Path (Join-Path $sdOut 'renut.nro.sha256') -Value "$hash  renut.nro" -Encoding ascii
@@ -163,4 +160,4 @@ Write-Host ''
 Write-Host "BUILD OK: $sdOut"
 Write-Host "   renut.nro  $([math]::Round((Get-Item $nro).Length / 1MB)) MB  sha256 $hash"
 Write-Host "   $stamp"
-Write-Host 'On the SD card: /switch/tfu-nx/ gets renut.nro, renut.toml and the game_root folder (assets\game_root).'
+Write-Host 'On the SD card: /switch/s4ep1-nx/ gets renut.nro, renut.toml and a game_root folder holding default.xex and data.cpk (assets\extracted).'

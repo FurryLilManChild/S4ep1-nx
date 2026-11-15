@@ -185,7 +185,7 @@ set_source_files_properties(src/tfu_build_stamp.cpp PROPERTIES SKIP_PRECOMPILE_H
 # banjo-nx (2026-10-17): Ryujinx starts NROs without argv[0]; the SDK then takes the NRO's usual place on the SD
 # (sdk/src/core/filesystem_posix.cpp). A console's hbloader always passes the path, so nothing changes there.
 if(REXGLUE_PLATFORM_SWITCH AND TARGET rexcore)
-    target_compile_definitions(rexcore PRIVATE REX_SWITCH_FALLBACK_EXE="/switch/tfu-nx/tfu-nx.nro")
+    target_compile_definitions(rexcore PRIVATE REX_SWITCH_FALLBACK_EXE="/switch/s4ep1-nx/renut.nro")
 endif()
 
 # banjo-nx (2026-10-16): Renut's Direct3D-level renderer as a second renderer, chosen at boot (banjo_renderer = "renut";
@@ -662,7 +662,7 @@ if(REXGLUE_PLATFORM_SWITCH)
         set(RENUT_ICON_ARG ICON "${RENUT_ICON}")
     endif()
     rexglue_switch_add_nro(renut
-        NAME "The Force Unleashed"
+        NAME "Sonic the Hedgehog 4: Episode I"
         AUTHOR "FurryLilManChild"
         VERSION "0.1.0"
         ${RENUT_ICON_ARG})

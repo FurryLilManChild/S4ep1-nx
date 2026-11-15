@@ -133,3 +133,16 @@ Newest first.
 - src/s4/s4_speed_diag.cpp: every 10 s on either renderer, the counts of those pieces, D3D's GPU interrupt handler
   (sub_821C65E0) and swap-done callback (sub_821C0770), and the refresh and pacer periods. One run on each renderer
   shows where they differ.
+
+## 2026-11-15 (afternoon): first Switch build prepared (TFU's route)
+
+- Mark: Switch build next. TFU's route, tested on this tree: the NRO built on Mark's PC (tools/win/build_switch.ps1),
+  the deko3d shaders made in the cloud.
+- Cloud (Mark's OK for SPIRV-Cross and uam): SPIRV-Cross vulkan-sdk-1.4.304.0 and app/thirdparty/uam built with clang
+  20 into out/deko3d_tools; zstd's CLI from XenosRecomp's copy (out/zstd_build). Shaders: Mark's renut_shader_dump (80)
+  plus his shader_capture (82), 84 in all; early-alpha pass (little 1, unsupported 22), SPIR-V 84, GLSL 84 of 84,
+  package out/renut_switch/deko3d_glsl.bin 107 KB (sha256 8f5bb467ea85f7b9). Renut's 27 host shaders for deko3d
+  (dxc-linux), 0 failed. Both copied to Mark's out\renut_switch and out\renut_switch_host.
+- build_switch.ps1: TFU's tfu_spin_idle step removed, the test folder out\sd\switch\s4ep1-nx, the settings
+  app/s4_switch_test.toml (TFU's Switch settings without TFU's forwarder id). NRO title "Sonic the Hedgehog 4:
+  Episode I"; the SDK's fallback path /switch/s4ep1-nx/renut.nro.
