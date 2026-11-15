@@ -352,7 +352,7 @@ constexpr DeltaChunkList MakeDeltaChunkList(bool narrow) {
 }
 constexpr DeltaChunkList kDeltaAllChunks = MakeDeltaChunkList(false);
 constexpr DeltaChunkList kDeltaReadChunks = MakeDeltaChunkList(true);
-static_assert(kDeltaReadChunks.count == 39);  // N&B (SA2 40; bangaio-nx's XDK 20209: 40)
+static_assert(kDeltaReadChunks.count == 42);  // S4ep1-nx: Sonic 4 42 (its snapshot 12888, 176 bytes past TFU's 12712: 3 more chunks); N&B 39 (SA2 40; bangaio-nx's XDK 20209: 40)
 
 // bangaio-nx (2026-10-29, banjo_renut_delta_masks, A/B 81 here, 73 in bangaio-nx): a chunk list as runs of whole chunks at consecutive
 // offsets, and each short chunk (the tail's last, 24 bytes in XDK 20209) as a run of its own. CaptureDelta asks

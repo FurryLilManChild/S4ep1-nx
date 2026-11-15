@@ -56,7 +56,9 @@ namespace {
 constexpr u32 kE_OUTOFMEMORY = 0x8007000Eu;
 // D3DVIEWPORT9 {0, 0, 0xFFFF, 0xFFFF, 0.0, 1.0} in N&B's data (unk_82001744):
 // the whole surface.
-constexpr u32 kFullViewport = 0x8202CAEC;  // katamari-nx: 0x82001744->0x820FAEB4  // TFU-nx: D3D_SetSurfaceInfo sub_822D7B68, tools/renut_data_refs.py
+// S4ep1-nx: TFU's kFullViewport (0x8202CAEC: 0, 0, 0xFFFF, 0xFFFF, 0.0, 1.0) has no counterpart: Sonic 4's LTCG build
+// inlines it (SetSurfaceInfo reads the rectangle from 0x8209BBF0, the Z range from float constants). The same values below.
+// constexpr u32 kFullViewport = 0x8202CAEC;  // katamari-nx: 0x82001744->0x820FAEB4  // TFU-nx: D3D_SetSurfaceInfo sub_822D7B68, tools/renut_data_refs.py
 // D3DRS_HIZWRITEENABLE's index in the render state table.
 constexpr u32 kRenderStateHiZWriteEnable = 97;
 
@@ -403,7 +405,7 @@ static void BeginTilingImpl(u32 device, u32 count, u32 rects_va, u32 color_va, u
   }
   d.SetW(native::off::TilingExtent, extent_x);
   d.SetW(native::off::TilingExtent + 4, extent_y);
-  d.SetW(0x3384, flags);  // katamari-nx: 0x338C->0x337C; XDK 2.0.5632 keeps Flags there (N&B's update: 0) (TFU-nx: offset 0x337C->0x3384)
+  d.SetW(0x3434, flags);  // katamari-nx: 0x338C->0x337C; XDK 2.0.5632 keeps Flags there (N&B's update: 0) (TFU-nx: offset 0x337C->0x3384) (S4ep1-nx: offset 0x3384->0x3434)
 
   if (!(flags & 1) && !(d.B(native::off::Flags3) & 0x20)) {
     // The largest tile, from its origin: its clear covers a tile of EDRAM.
@@ -416,11 +418,11 @@ static void BeginTilingImpl(u32 device, u32 count, u32 rects_va, u32 color_va, u
     // after the clear.
     float viewport[6];
     for (u32 i = 0; i < 6; ++i)
-      viewport[i] = d.F(0x3168 + i * 4);  // katamari-nx: 0x3170->0x3160 (TFU-nx: offset 0x3160->0x3168)
+      viewport[i] = d.F(0x3218 + i * 4);  // katamari-nx: 0x3170->0x3160 (TFU-nx: offset 0x3160->0x3168) (S4ep1-nx: offset 0x3168->0x3218)
     i32 scissor[4];
     for (u32 i = 0; i < 4; ++i)
       scissor[i] = i32(d.W(native::off::ScissorRect + i * 4));
-    native::SetViewport(d, kFullViewport);
+    native::SetViewport(d, 0.0f, 0.0f, 65535.0f, 65535.0f, 0.0f, 1.0f);  // S4ep1-nx: TFU's full viewport
     native::SetScissorRect(d, 0, 0, 0xFFFF, 0xFFFF);  // dword_82001190
     const ClearRect rect{0, 0, i32(width), i32(height)};
     float color[4] = {0, 0, 0, 0};
@@ -432,17 +434,17 @@ static void BeginTilingImpl(u32 device, u32 count, u32 rects_va, u32 color_va, u
     native::SetScissorRect(d, scissor[0], scissor[1], scissor[2], scissor[3]);
   }
   if (const auto *color = color_va ? GuestPtr<const u8>(color_va) : nullptr)
-    std::memcpy(d.bytes + 0x3390, color, 16);  // katamari-nx: 0x3390->0x3380 (TFU-nx: offset 0x3380->0x3390)
+    std::memcpy(d.bytes + 0x3440, color, 16);  // katamari-nx: 0x3390->0x3380 (TFU-nx: offset 0x3380->0x3390) (S4ep1-nx: offset 0x3390->0x3440)
   else
-    std::memset(d.bytes + 0x3390, 0, 16);  // katamari-nx: 0x3390->0x3380 (TFU-nx: offset 0x3380->0x3390)
-  d.SetF(0x33A0, clear_z);  // flt_82000D18 (katamari-nx: 0x33A0->0x3390; XDK 2.0.5632: the ClearZ argument) (TFU-nx: offset 0x3390->0x33A0)
-  d.SetW(0x33A4, clear_stencil);  // katamari-nx: 0x33A4->0x3394; XDK 2.0.5632: the ClearStencil argument (TFU-nx: offset 0x3394->0x33A4)
+    std::memset(d.bytes + 0x3440, 0, 16);  // katamari-nx: 0x3390->0x3380 (TFU-nx: offset 0x3380->0x3390) (S4ep1-nx: offset 0x3390->0x3440)
+  d.SetF(0x3450, clear_z);  // flt_82000D18 (katamari-nx: 0x33A0->0x3390; XDK 2.0.5632: the ClearZ argument) (TFU-nx: offset 0x3390->0x33A0) (S4ep1-nx: offset 0x33A0->0x3450)
+  d.SetW(0x3454, clear_stencil);  // katamari-nx: 0x33A4->0x3394; XDK 2.0.5632: the ClearStencil argument (TFU-nx: offset 0x3394->0x33A4) (S4ep1-nx: offset 0x33A4->0x3454)
 
   const u32 target = d.W(native::off::RenderTargets);
-  d.SetW(0x31B4, target ? target : d.W(native::off::DepthStencil));  // katamari-nx: 0x31BC->0x31AC (TFU-nx: offset 0x31AC->0x31B4)
+  d.SetW(0x3264, target ? target : d.W(native::off::DepthStencil));  // katamari-nx: 0x31BC->0x31AC (TFU-nx: offset 0x31AC->0x31B4) (S4ep1-nx: offset 0x31B4->0x3264)
   for (u32 i = 0; i < 5; ++i)  // the 4 targets, then depth
     d.SetW(native::off::TilingSurfaces + i * 4, d.W(native::off::RenderTargets + i * 4));
-  d.SetW(0x31B0, 2);  // katamari-nx: 0x31B8->0x31A8 (TFU-nx: offset 0x31A8->0x31B0)
+  d.SetW(0x3260, 2);  // katamari-nx: 0x31B8->0x31A8 (TFU-nx: offset 0x31A8->0x31B0) (S4ep1-nx: offset 0x31B0->0x3260)
   d.SetB(native::off::Flags, d.B(native::off::Flags) | 0x20);
   d.SetW(native::off::PredicationSet, 0);
   native::UpdateTilePredicated(d);
@@ -452,7 +454,7 @@ static void BeginTilingImpl(u32 device, u32 count, u32 rects_va, u32 color_va, u
   d.SetW(native::off::RunPredication, 0);
   // The tiles' commands go into a ring segment of their own from a KickOff.
   native::KickOff(device);
-  native::SetViewport(d, kFullViewport);
+  native::SetViewport(d, 0.0f, 0.0f, 65535.0f, 65535.0f, 0.0f, 1.0f);  // S4ep1-nx: TFU's full viewport
   native::ResetAllState(d);
 }
 
@@ -495,7 +497,7 @@ static u32 EndTilingImpl(u32 device, bool katamari, u32 resolve_flags, u32 rects
       const u32 tile = native::off::TileRects + i * 16;
       ClearRect rect{i32(d.W(tile)), i32(d.W(tile + 4)), i32(d.W(tile + 8)), i32(d.W(tile + 12))};
       // A tile at the surface's edge resolves to a multiple of 8.
-      const u32 surface = d.W(0x31B4);  // katamari-nx: 0x31BC->0x31AC (TFU-nx: offset 0x31AC->0x31B4)
+      const u32 surface = d.W(0x3264);  // katamari-nx: 0x31BC->0x31AC (TFU-nx: offset 0x31AC->0x31B4) (S4ep1-nx: offset 0x31B4->0x3264)
       const auto *s = surface ? GuestPtr<const be_u32>(surface) : nullptr;
       const u32 size = s ? u32(s[9]) : 0;
       if (u32(rect.x2) == (size >> 18) + 1)
@@ -514,8 +516,8 @@ static u32 EndTilingImpl(u32 device, bool katamari, u32 resolve_flags, u32 rects
           if (d.W(native::off::DepthStencil))
             flags |= 0x200;
         }
-        Resolve(device, flags, &rect, dest_texture, dest_x, dest_y, 0, 0, device + 0x3390,  // katamari-nx: 0x3390->0x3380 (TFU-nx: offset 0x3380->0x3390)
-                d.F(0x33A0), d.W(0x33A4), 0);  // katamari-nx: 0x33A0->0x3390, 0x33A4->0x3394 (TFU-nx: offset 0x3390->0x33A0, 0x3394->0x33A4)
+        Resolve(device, flags, &rect, dest_texture, dest_x, dest_y, 0, 0, device + 0x3440,  // katamari-nx: 0x3390->0x3380 (TFU-nx: offset 0x3380->0x3390) (S4ep1-nx: offset 0x3390->0x3440)
+                d.F(0x3450), d.W(0x3454), 0);  // katamari-nx: 0x33A0->0x3390, 0x33A4->0x3394 (TFU-nx: offset 0x3390->0x33A0, 0x3394->0x33A4) (S4ep1-nx: offset 0x33A0->0x3450, 0x33A4->0x3454)
       } else {
         Resolve(device, resolve_flags, &rect, dest_texture, dest_x, dest_y, 0, 0, color_va,
                 clear_z /*N&B: flt_82000C1C*/, clear_stencil, params);
@@ -533,7 +535,7 @@ static u32 EndTilingImpl(u32 device, bool katamari, u32 resolve_flags, u32 rects
 
   d.SetB(native::off::Flags3, d.B(native::off::Flags3) & 0xCF);
   d.SetB(native::off::Flags, d.B(native::off::Flags) & 0xDF);
-  d.SetW(0x31B4, 0);  // katamari-nx: 0x31BC->0x31AC (TFU-nx: offset 0x31AC->0x31B4)
+  d.SetW(0x3264, 0);  // katamari-nx: 0x31BC->0x31AC (TFU-nx: offset 0x31AC->0x31B4) (S4ep1-nx: offset 0x31B4->0x3264)
   d.SetW(native::off::PredicationSet, 0);
   native::UpdateTilePredicated(d);
   d.SetW(native::off::RunPredicationState, 0);
@@ -549,7 +551,7 @@ static u32 EndTilingImpl(u32 device, bool katamari, u32 resolve_flags, u32 rects
   } else {
     native::SetFence(device);
   }
-  native::SetViewport(d, kFullViewport);
+  native::SetViewport(d, 0.0f, 0.0f, 65535.0f, 65535.0f, 0.0f, 1.0f);  // S4ep1-nx: TFU's full viewport
 
   if (!IsRecordingCommandBuffer(device)) {
     render_thread::Queue([] {
@@ -691,7 +693,7 @@ void D3DDevice_Present_hook(u32 device) {
   FlushDeferredVertices(device);
   float viewport[6];
   for (u32 i = 0; i < 6; ++i)
-    viewport[i] = d.F(0x3168 + i * 4);  // katamari-nx: 0x3170->0x3160 (TFU-nx: offset 0x3160->0x3168)
+    viewport[i] = d.F(0x3218 + i * 4);  // katamari-nx: 0x3170->0x3160 (TFU-nx: offset 0x3160->0x3168) (S4ep1-nx: offset 0x3168->0x3218)
   i32 scissor[4];
   for (u32 i = 0; i < 4; ++i)
     scissor[i] = i32(d.W(native::off::ScissorRect + i * 4));
@@ -721,7 +723,7 @@ void D3DDevice_Present_hook(u32 device) {
   native::SetViewport(d, viewport[0], viewport[1], viewport[2], viewport[3], viewport[4],
                       viewport[5]);
   native::SetScissorRect(d, scissor[0], scissor[1], scissor[2], scissor[3]);
-  native::Swap(device, front_buffer, device + 0x3548);
+  native::Swap(device, front_buffer, device + 0x361C);  // S4ep1-nx: offset 0x3548->0x361C
   if (tfu_diag && (tfu_presents == 60 || tfu_presents == 300 || tfu_presents == 700 || tfu_presents == 1000 ||
       tfu_presents == 1300 || tfu_presents == 1600 || tfu_presents == 1900))
     TfuDiagCaptureScanOut(tfu_presents);  // TFU-nx (2026-11-11)  // katamari-nx: 0x3548->0x3530 (TFU-nx: offset 0x3530->0x3548)
@@ -743,22 +745,22 @@ void D3DDevice_SetPixelShader_hook(u32 device, u32 shader) {
 
 } // namespace
 
-BANJO_RENUT_HOOK(sub_8281E2B8, D3DDevice_DrawVertices_hook);  // TFU-nx: Katamari sub_824D9D08, d3d_match 1.00 (next 0.71);  // D3DDevice_DrawVertices  // katamari-nx: N&B sub_821FB880, signature 0.90 (next 0.77)
-BANJO_RENUT_HOOK(sub_8281E6A0, D3DDevice_DrawIndexedVertices_hook);  // TFU-nx: Katamari sub_824DA0F0, d3d_match 1.00 (next 0.72);  // D3DDevice_DrawIndexedVertices  // katamari-nx: N&B sub_8263F358, signature 0.87 (next 0.78)
-BANJO_RENUT_HOOK(sub_8281EAF8, D3DDevice_DrawIndexedTessellatedVertices_hook);  // TFU-nx: Katamari sub_824DA9C0, d3d_match 0.99 (next 0.66);  // D3DDevice_DrawIndexedTessellatedVertices  // katamari-nx: N&B sub_821FF958, signature 0.86 (next 0.65)
-BANJO_RENUT_UNHOOKED_HOOK(sub_824D9758, D3DDevice_DrawVerticesUP_hook);  // TFU-nx: no counterpart in TFU (docs/renut-map.md);  // D3DDevice_DrawVerticesUP  // katamari-nx: N&B sub_821FD698, D3DDevice_DrawVerticesUP: BeginVertices-style reserve, reads VerticesRingEnd +13428 (N&B +13444) and the flags +10940; sig 0.69/0.55
-BANJO_RENUT_UNHOOKED_HOOK(sub_8263F2B8, D3DDevice_DrawIndexedVerticesUP_hook);  // D3DDevice_DrawIndexedVerticesUP  // katamari-nx: not hooked (D3DDevice_DrawIndexedVerticesUP: no counterpart found (sig 0.32))
-BANJO_RENUT_UNHOOKED_HOOK(sub_824D92B8, D3DDevice_BeginVertices_hook);  // TFU-nx: no counterpart in TFU (docs/renut-map.md);  // D3DDevice_BeginVertices  // katamari-nx: N&B sub_821FBD30, signature 0.87 (next 0.70)
-BANJO_RENUT_HOOK(sub_822F67F0, D3DDevice_ClearF_hook);  // TFU-nx: Katamari sub_824F3248, d3d_match 1.00 (next 0.41);  // D3DDevice_ClearF  // katamari-nx: N&B sub_8224F110, D3DDevice_ClearF: sig 0.71/0.40; reads the targets +12432.. and tiling surfaces +12720.. as N&B +12448 / +12736
-BANJO_RENUT_HOOK(sub_822F6918, D3DDevice_Clear_hook);  // TFU-nx: Katamari sub_824F3370, d3d_match 1.00 (next 0.37);  // D3DDevice_Clear  // katamari-nx: N&B sub_8224F238, signature 0.84 (next 0.36)
-BANJO_RENUT_HOOK(sub_822F47A8, D3DDevice_Resolve_hook);  // TFU-nx: Katamari sub_824F12B8, by hand: 0.82, between ClearF/Clear and SetPredication as in Katamari;  // D3DDevice_Resolve  // katamari-nx: N&B sub_821FC7A0, signature 0.78 (next 0.33)
-BANJO_RENUT_UNHOOKED_HOOK_SHARED(sub_82246798, D3DDevice_BeginTiling_hook);  // D3DDevice_BeginTiling: N&B's update form, see below
-BANJO_RENUT_UNHOOKED_HOOK(sub_821E17C0, D3DDevice_EndTiling_hook);  // D3DDevice_EndTiling: N&B's update form, see below
+BANJO_RENUT_HOOK(sub_821BFE48, D3DDevice_DrawVertices_hook);  // TFU-nx: Katamari sub_824D9D08, d3d_match 1.00 (next 0.71);  // D3DDevice_DrawVertices  // katamari-nx: N&B sub_821FB880, signature 0.90 (next 0.77)  // S4ep1-nx: TFU sub_8281E2B8, seed los1 d3d_match 0.98 (same XDK) D3DDevice_DrawVertices
+BANJO_RENUT_HOOK(sub_821C0238, D3DDevice_DrawIndexedVertices_hook);  // TFU-nx: Katamari sub_824DA0F0, d3d_match 1.00 (next 0.72);  // D3DDevice_DrawIndexedVertices  // katamari-nx: N&B sub_8263F358, signature 0.87 (next 0.78)  // S4ep1-nx: TFU sub_8281E6A0, seed los1 d3d_match 0.90 (same XDK) D3DDevice_DrawIndexedVertices
+BANJO_RENUT_UNHOOKED_HOOK(sub_8281EAF8, D3DDevice_DrawIndexedTessellatedVertices_hook);  // TFU-nx: Katamari sub_824DA9C0, d3d_match 0.99 (next 0.66);  // D3DDevice_DrawIndexedTessellatedVertices  // katamari-nx: N&B sub_821FF958, signature 0.86 (next 0.65)  // S4ep1-nx: no counterpart found in Sonic 4 (docs/renut-map.md, still open)
+BANJO_RENUT_HOOK(sub_821BFE00, D3DDevice_DrawVerticesUP_hook);  // TFU-nx: no counterpart in TFU (docs/renut-map.md);  // D3DDevice_DrawVerticesUP  // katamari-nx: N&B sub_821FD698, D3DDevice_DrawVerticesUP: BeginVertices-style reserve, reads VerticesRingEnd +13428 (N&B +13444) and the flags +10940; sig 0.69/0.55  // S4ep1-nx: was unhooked in TFU (sub_824D9758); D3DDevice_DrawVerticesUP: LoS1 d3d_match 1.00 (same XDK)
+BANJO_RENUT_UNHOOKED_HOOK(sub_8263F2B8, D3DDevice_DrawIndexedVerticesUP_hook);  // D3DDevice_DrawIndexedVerticesUP  // katamari-nx: not hooked (D3DDevice_DrawIndexedVerticesUP: no counterpart found (sig 0.32))  // S4ep1-nx: unhooked as in TFU
+BANJO_RENUT_HOOK(sub_821BF968, D3DDevice_BeginVertices_hook);  // TFU-nx: no counterpart in TFU (docs/renut-map.md);  // D3DDevice_BeginVertices  // katamari-nx: N&B sub_821FBD30, signature 0.87 (next 0.70)  // S4ep1-nx: was unhooked in TFU (sub_824D92B8); D3DDevice_BeginVertices: LoS1 d3d_match 1.00 (same XDK)
+BANJO_RENUT_HOOK(sub_821B2FD0, D3DDevice_ClearF_hook);  // TFU-nx: Katamari sub_824F3248, d3d_match 1.00 (next 0.41);  // D3DDevice_ClearF  // katamari-nx: N&B sub_8224F110, D3DDevice_ClearF: sig 0.71/0.40; reads the targets +12432.. and tiling surfaces +12720.. as N&B +12448 / +12736  // S4ep1-nx: TFU sub_822F67F0, seed los1 d3d_match 1.00 (same XDK) D3DDevice_ClearF
+BANJO_RENUT_UNHOOKED_HOOK(sub_822F6918, D3DDevice_Clear_hook);  // TFU-nx: Katamari sub_824F3370, d3d_match 1.00 (next 0.37);  // D3DDevice_Clear  // katamari-nx: N&B sub_8224F238, signature 0.84 (next 0.36)  // S4ep1-nx: no counterpart found in Sonic 4 (docs/renut-map.md, still open)
+BANJO_RENUT_HOOK(sub_821C1C80, D3DDevice_Resolve_hook);  // TFU-nx: Katamari sub_824F12B8, by hand: 0.82, between ClearF/Clear and SetPredication as in Katamari;  // D3DDevice_Resolve  // katamari-nx: N&B sub_821FC7A0, signature 0.78 (next 0.33)  // S4ep1-nx: TFU sub_822F47A8, seed Resolve: called by Present in both; TFU d3d_match top 0.48
+BANJO_RENUT_UNHOOKED_HOOK_SHARED(sub_82246798, D3DDevice_BeginTiling_hook);  // D3DDevice_BeginTiling: N&B's update form, see below  // S4ep1-nx: unhooked as in TFU
+BANJO_RENUT_UNHOOKED_HOOK(sub_821E17C0, D3DDevice_EndTiling_hook);  // D3DDevice_EndTiling: N&B's update form, see below  // S4ep1-nx: unhooked as in TFU
 // katamari-nx (2026-10-30): XDK 2.0.5632's BeginTiling (sub_824EFBC8: it stores the count at TileCount +0x31C4 and
 // the targets at TilingSurfaces +0x31B0, where the zones put N&B's fields; the game calls it at 0x8271E62C) and
 // EndTiling (sub_824F0150: sig 0.66/0.36, resolves through Resolve sub_824F12B8; called at 0x8272F2E0..0x8272F384),
 // with their full arguments read from the registers (the float argument takes r8's place: ClearStencil is r9).
-BANJO_RENUT_HOOK_RAW(sub_822F36E0) {  // TFU-nx: BeginTiling: d3d_match 0.69 (next 0.17), just before EndTiling; same argument registers r4-r7, r9
+BANJO_RENUT_UNHOOKED_HOOK_RAW(sub_822F36E0) {  // TFU-nx: BeginTiling: d3d_match 0.69 (next 0.17), just before EndTiling; same argument registers r4-r7, r9  // S4ep1-nx: no counterpart found in Sonic 4 (docs/renut-map.md, still open)
   {  // TFU-nx (2026-11-11): the first calls' arguments, to check the 0.69 pairing in play
     static int logged = 0;
     if (logged < 6) {
@@ -771,15 +773,15 @@ BANJO_RENUT_HOOK_RAW(sub_822F36E0) {  // TFU-nx: BeginTiling: d3d_match 0.69 (ne
   }
   BeginTilingImpl(ctx.r3.u32, ctx.r5.u32, ctx.r6.u32, ctx.r7.u32, ctx.r4.u32, float(ctx.f1.f64), ctx.r9.u32);
 }
-BANJO_RENUT_HOOK_RAW(sub_822F3B78) {  // TFU-nx: EndTiling: d3d_match 1.00
+BANJO_RENUT_UNHOOKED_HOOK_RAW(sub_822F3B78) {  // TFU-nx: EndTiling: d3d_match 1.00  // S4ep1-nx: no counterpart found in Sonic 4 (docs/renut-map.md, still open)
   if (g_tfu_capture_frame && g_tfu_capture_index < 40)  // TFU-nx (2026-11-11): the tiled target before its resolves
     TfuDiagReadBackBuffer(ctx.r3.u32, g_tfu_capture_present,
                           fmt::format("endtiling{:02}_{:X}_{:08X}", g_tfu_capture_index++, ctx.r4.u32, ctx.r6.u32));
   ctx.r3.u64 = EndTilingImpl(ctx.r3.u32, true, ctx.r4.u32, ctx.r5.u32, ctx.r6.u32, ctx.r7.u32, float(ctx.f1.f64),
                              ctx.r9.u32, ctx.r10.u32);
 }
-BANJO_RENUT_UNHOOKED_HOOK_SHARED(sub_82237FE8, D3DDevice_BeginExport_hook);  // D3DDevice_BeginExport  // katamari-nx: not hooked (D3DDevice_BeginExport: XDK 2.0.5632 has no memexport functions (as feedingfrenzy2-nx found for 6534))
-BANJO_RENUT_UNHOOKED_HOOK_SHARED(sub_82237D80, D3DDevice_EndExport_hook);  // D3DDevice_EndExport  // katamari-nx: not hooked (D3DDevice_EndExport: as above)
-BANJO_RENUT_HOOK(sub_822E98D8, D3DDevice_Present_hook);  // TFU-nx: Katamari sub_824E9428, d3d_match 0.92 (next 0.34);  // D3DDevice_Present  // katamari-nx: N&B sub_826352B8, D3DDevice_Present: SynchronizeToPresentationInterval sub_824E89E8, Resolve sub_824F12B8, KickOff sub_824E0298, then Swap sub_824E8E90; sig 0.43/0.26
-BANJO_RENUT_HOOK(sub_822E3E80, D3DDevice_SetVertexShader_hook);  // TFU-nx: Katamari sub_824D4930, d3d_match 0.99 (next 0.90);  // D3DDevice_SetVertexShader  // katamari-nx: N&B sub_821F90D8, signature 0.87 (next 0.75)
-BANJO_RENUT_HOOK(sub_822E3B80, D3DDevice_SetPixelShader_hook);  // TFU-nx: Katamari sub_824D4630, d3d_match 0.96 (next 0.88);  // D3DDevice_SetPixelShader  // katamari-nx: N&B sub_821F58A8, signature 0.85 (next 0.73)
+BANJO_RENUT_UNHOOKED_HOOK_SHARED(sub_82237FE8, D3DDevice_BeginExport_hook);  // D3DDevice_BeginExport  // katamari-nx: not hooked (D3DDevice_BeginExport: XDK 2.0.5632 has no memexport functions (as feedingfrenzy2-nx found for 6534))  // S4ep1-nx: unhooked as in TFU
+BANJO_RENUT_UNHOOKED_HOOK_SHARED(sub_82237D80, D3DDevice_EndExport_hook);  // D3DDevice_EndExport  // katamari-nx: not hooked (D3DDevice_EndExport: as above)  // S4ep1-nx: unhooked as in TFU
+BANJO_RENUT_HOOK(sub_8249E2F8, D3DDevice_Present_hook);  // TFU-nx: Katamari sub_824E9428, d3d_match 0.92 (next 0.34);  // D3DDevice_Present  // katamari-nx: N&B sub_826352B8, D3DDevice_Present: SynchronizeToPresentationInterval sub_824E89E8, Resolve sub_824F12B8, KickOff sub_824E0298, then Swap sub_824E8E90; sig 0.43/0.26  // S4ep1-nx: TFU sub_822E98D8, seed Present: the same callees as TFU's (SetRenderTarget, KickOff, Swap, SynchronizeToPresentationInterval, Resolve, SetScissorRect, sub_822C0450's pair); outside the D3D block (LTCG)
+BANJO_RENUT_HOOK(sub_821B9EC8, D3DDevice_SetVertexShader_hook);  // TFU-nx: Katamari sub_824D4930, d3d_match 0.99 (next 0.90);  // D3DDevice_SetVertexShader  // katamari-nx: N&B sub_821F90D8, signature 0.87 (next 0.75)  // S4ep1-nx: TFU sub_822E3E80, D3DDevice_SetVertexShader: reads and writes the device's vertex shader +0x3248 (LoS1 12872); TFU match top
+BANJO_RENUT_HOOK(sub_821B9B20, D3DDevice_SetPixelShader_hook);  // TFU-nx: Katamari sub_824D4630, d3d_match 0.96 (next 0.88);  // D3DDevice_SetPixelShader  // katamari-nx: N&B sub_821F58A8, signature 0.85 (next 0.73)  // S4ep1-nx: TFU sub_822E3B80, D3DDevice_SetPixelShader: reads and writes the device's pixel shader +0x3244 (LoS1 12868); TFU match top

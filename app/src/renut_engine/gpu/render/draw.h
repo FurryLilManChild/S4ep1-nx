@@ -246,7 +246,7 @@ constexpr u32 FieldOfOffset(u32 at) {
     return kFieldUnread;
   if (at >= d3d::kDeviceOffsetVertexDeclaration && at < d3d::kDeviceOffsetVertexDeclaration + 4)
     return kFieldDecl;
-  if (at < 0x2F00)  // katamari-nx: 0x2F08->0x2EF8 (TFU-nx: offset 0x2EF8->0x2F00)
+  if (at < 0x2FB0)  // katamari-nx: 0x2F08->0x2EF8 (TFU-nx: offset 0x2EF8->0x2F00) (S4ep1-nx: offset 0x2F00->0x2FB0)
     return kFieldPrivate;
   if (at < d3d::kDeviceOffsetIndexBuffer)
     return kFieldTail;
@@ -258,7 +258,7 @@ constexpr u32 FieldOfOffset(u32 at) {
     return kFieldStreams;
   if (at < d3d::kDeviceOffsetTextures + 4 * d3d::kTextureFetchSlots)
     return kFieldTexWords;
-  if (at < 0x3184)  // katamari-nx: 0x318C->0x317C (TFU-nx: offset 0x317C->0x3184)
+  if (at < 0x3234)  // katamari-nx: 0x318C->0x317C (TFU-nx: offset 0x317C->0x3184) (S4ep1-nx: offset 0x3184->0x3234)
     return kFieldTail;
   if (at < d3d::kDeviceOffsetPixelShader)
     return kFieldScissor;

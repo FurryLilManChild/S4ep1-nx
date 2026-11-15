@@ -27,32 +27,32 @@ constexpr u32 kPendingMisc = 4;     // m_MiscPacket and friends
 
 // Render state storage in the CDevice-private area (TU3: 8 bytes further on
 // than the first release from 0x2E30 to 0x3390, 4 from 0x2AC0).
-constexpr u32 kBlendState = 0x2E48;       // D3D blend: src 0-4, op 5-7, dest 8-12, alpha at 16+ (katamari-nx: 0x2E50->0x2E40) (TFU-nx: offset 0x2E40->0x2E48)
-constexpr u32 kBlendFlags = 0x2E4C;       // 31 blend enable, 30 separate alpha, HiZ fields (katamari-nx: 0x2E54->0x2E44) (TFU-nx: offset 0x2E44->0x2E4C)
-constexpr u32 kScissorTestEnable = 0x2E50;  // katamari-nx: 0x2E58->0x2E48 (TFU-nx: offset 0x2E48->0x2E50)
-constexpr u32 kColorWriteEnable = 0x2E54;  // [4] (katamari-nx: 0x2E5C->0x2E4C) (TFU-nx: offset 0x2E4C->0x2E54)
-constexpr u32 kZEnable = 0x2E64;  // katamari-nx: 0x2E6C->0x2E5C (TFU-nx: offset 0x2E5C->0x2E64)
-constexpr u32 kStencilEnable = 0x2E68;  // katamari-nx: 0x2E70->0x2E60 (TFU-nx: offset 0x2E60->0x2E68)
-constexpr u32 kPointSpriteEnable = 0x2E6C;  // katamari-nx: 0x2E74->0x2E64 (TFU-nx: offset 0x2E64->0x2E6C)
-constexpr u32 kPointSize = 0x2E74;  // katamari-nx: 0x2E7C->0x2E6C (TFU-nx: offset 0x2E6C->0x2E74)
-constexpr u32 kPointSizeMin = 0x2E78;  // katamari-nx: 0x2E80->0x2E70 (TFU-nx: offset 0x2E70->0x2E78)
-constexpr u32 kPointSizeMax = 0x2E7C;  // katamari-nx: 0x2E84->0x2E74 (TFU-nx: offset 0x2E74->0x2E7C)
-constexpr u32 kHighPrecisionBlend = 0x2EFC;  // [4] (katamari-nx: 0x2F04->0x2EF4) (TFU-nx: offset 0x2EF4->0x2EFC)
-constexpr u32 kPresentInterval = 0x351C;  // katamari-nx: 0x351C->0x3504 (TFU-nx: offset 0x3504->0x351C)
-constexpr u32 kBehaviorFlags2 = 0x571C;  // katamari-nx: 0x5DAC->0x56F8 (TFU-nx: offset 0x56F8->0x571C)
+constexpr u32 kBlendState = 0x2EF8;       // D3D blend: src 0-4, op 5-7, dest 8-12, alpha at 16+ (katamari-nx: 0x2E50->0x2E40) (TFU-nx: offset 0x2E40->0x2E48) (S4ep1-nx: offset 0x2E48->0x2EF8)
+constexpr u32 kBlendFlags = 0x2EFC;       // 31 blend enable, 30 separate alpha, HiZ fields (katamari-nx: 0x2E54->0x2E44) (TFU-nx: offset 0x2E44->0x2E4C) (S4ep1-nx: offset 0x2E4C->0x2EFC)
+constexpr u32 kScissorTestEnable = 0x2F00;  // katamari-nx: 0x2E58->0x2E48 (TFU-nx: offset 0x2E48->0x2E50) (S4ep1-nx: offset 0x2E50->0x2F00)
+constexpr u32 kColorWriteEnable = 0x2F04;  // [4] (katamari-nx: 0x2E5C->0x2E4C) (TFU-nx: offset 0x2E4C->0x2E54) (S4ep1-nx: offset 0x2E54->0x2F04)
+constexpr u32 kZEnable = 0x2F14;  // katamari-nx: 0x2E6C->0x2E5C (TFU-nx: offset 0x2E5C->0x2E64) (S4ep1-nx: offset 0x2E64->0x2F14)
+constexpr u32 kStencilEnable = 0x2F18;  // katamari-nx: 0x2E70->0x2E60 (TFU-nx: offset 0x2E60->0x2E68) (S4ep1-nx: offset 0x2E68->0x2F18)
+constexpr u32 kPointSpriteEnable = 0x2F1C;  // katamari-nx: 0x2E74->0x2E64 (TFU-nx: offset 0x2E64->0x2E6C) (S4ep1-nx: offset 0x2E6C->0x2F1C)
+constexpr u32 kPointSize = 0x2F24;  // katamari-nx: 0x2E7C->0x2E6C (TFU-nx: offset 0x2E6C->0x2E74) (S4ep1-nx: offset 0x2E74->0x2F24)
+constexpr u32 kPointSizeMin = 0x2F28;  // katamari-nx: 0x2E80->0x2E70 (TFU-nx: offset 0x2E70->0x2E78) (S4ep1-nx: offset 0x2E78->0x2F28)
+constexpr u32 kPointSizeMax = 0x2F2C;  // katamari-nx: 0x2E84->0x2E74 (TFU-nx: offset 0x2E74->0x2E7C) (S4ep1-nx: offset 0x2E7C->0x2F2C)
+constexpr u32 kHighPrecisionBlend = 0x2FAC;  // [4] (katamari-nx: 0x2F04->0x2EF4) (TFU-nx: offset 0x2EF4->0x2EFC) (S4ep1-nx: offset 0x2EFC->0x2FAC)
+constexpr u32 kPresentInterval = 0x35F0;  // katamari-nx: 0x351C->0x3504 (TFU-nx: offset 0x3504->0x351C) (S4ep1-nx: offset 0x351C->0x35F0)
+constexpr u32 kBehaviorFlags2 = 0x5E88;  // katamari-nx: 0x5DAC->0x56F8 (TFU-nx: offset 0x56F8->0x571C) (S4ep1-nx: offset 0x571C->0x5E88)
 // Sampler state storage, a byte per sampler.
-constexpr u32 kMaxAnisotropy = 0x2E94;  // katamari-nx: 0x2E9C->0x2E8C (TFU-nx: offset 0x2E8C->0x2E94)
-constexpr u32 kMaxMipLevel = 0x2EAE;  // katamari-nx: 0x2EB6->0x2EA6 (TFU-nx: offset 0x2EA6->0x2EAE)
-constexpr u32 kMinMipLevel = 0x2EC8;  // katamari-nx: 0x2ED0->0x2EC0 (TFU-nx: offset 0x2EC0->0x2EC8)
-constexpr u32 kZFilter = 0x2EE2;  // bit 0 mag, 1 min, 2 separate Z filtering (katamari-nx: 0x2EEA->0x2EDA) (TFU-nx: offset 0x2EDA->0x2EE2)
+constexpr u32 kMaxAnisotropy = 0x2F44;  // katamari-nx: 0x2E9C->0x2E8C (TFU-nx: offset 0x2E8C->0x2E94) (S4ep1-nx: offset 0x2E94->0x2F44)
+constexpr u32 kMaxMipLevel = 0x2F5E;  // katamari-nx: 0x2EB6->0x2EA6 (TFU-nx: offset 0x2EA6->0x2EAE) (S4ep1-nx: offset 0x2EAE->0x2F5E)
+constexpr u32 kMinMipLevel = 0x2F78;  // katamari-nx: 0x2ED0->0x2EC0 (TFU-nx: offset 0x2EC0->0x2EC8) (S4ep1-nx: offset 0x2EC8->0x2F78)
+constexpr u32 kZFilter = 0x2F92;  // bit 0 mag, 1 min, 2 separate Z filtering (katamari-nx: 0x2EEA->0x2EDA) (TFU-nx: offset 0x2EDA->0x2EE2) (S4ep1-nx: offset 0x2EE2->0x2F92)
 // Viewport (SetViewport's arguments, clamped) and the register image values.
-constexpr u32 kViewport = 0x3168;  // x, y, width, height, min z, max z, 0 (katamari-nx: 0x3170->0x3160) (TFU-nx: offset 0x3160->0x3168)
+constexpr u32 kViewport = 0x3218;  // x, y, width, height, min z, max z, 0 (katamari-nx: 0x3170->0x3160) (TFU-nx: offset 0x3160->0x3168) (S4ep1-nx: offset 0x3168->0x3218)
 constexpr u32 kVportXScale = 0x2908;
 constexpr u32 kVportZScale = 0x2918;
-constexpr u32 kStreamDeclStrides = 0x2E38;  // u8[16] (katamari-nx: 0x2E40->0x2E30) (TFU-nx: offset 0x2E30->0x2E38)
-constexpr u32 kVertexDeclaration = 0x2E2C;  // katamari-nx: 0x2E30->0x2E24 (TFU-nx: offset 0x2E24->0x2E2C)
-constexpr u32 kVertexShader = 0x3198;  // katamari-nx: 0x31A0->0x3190 (TFU-nx: offset 0x3190->0x3198)
-constexpr u32 kPixelShader = 0x3194;  // katamari-nx: 0x319C->0x318C (TFU-nx: offset 0x318C->0x3194)
+constexpr u32 kStreamDeclStrides = 0x2EE8;  // u8[16] (katamari-nx: 0x2E40->0x2E30) (TFU-nx: offset 0x2E30->0x2E38) (S4ep1-nx: offset 0x2E38->0x2EE8)
+constexpr u32 kVertexDeclaration = 0x2ED8;  // katamari-nx: 0x2E30->0x2E24 (TFU-nx: offset 0x2E24->0x2E2C) (S4ep1-nx: offset 0x2E2C->0x2ED8)
+constexpr u32 kVertexShader = 0x3248;  // katamari-nx: 0x31A0->0x3190 (TFU-nx: offset 0x3190->0x3198) (S4ep1-nx: offset 0x3198->0x3248)
+constexpr u32 kPixelShader = 0x3244;  // katamari-nx: 0x319C->0x318C (TFU-nx: offset 0x318C->0x3194) (S4ep1-nx: offset 0x3194->0x3244)
 constexpr u32 kGprAllocation = 0x2AA8;
 constexpr u32 kScreenExtentQueryMode = 0x2AA4;
 
@@ -728,8 +728,10 @@ constexpr SamplerStateFn kSamplerStateFns[kSamplerStates] = {
 };
 
 // N&B's state tables: {getter, setter, default} per state.
-constexpr u32 kRenderStateTable = 0x82F43938;  // katamari-nx: 0x82D8A948->0x82AD8E48  // TFU-nx: 101 records, every default N&B's
-constexpr u32 kSamplerStateTable = 0x82F43DF8;  // katamari-nx: 0x82D8AE28->0x82AD9308  // TFU-nx: 20 records
+constexpr u32 kRenderStateTable = 0x824D6498;  // S4ep1-nx: TFU 0x82F43938; 101 records with the same defaults (docs/renut-map.md)
+//  // katamari-nx: 0x82D8A948->0x82AD8E48  // TFU-nx: 101 records, every default N&B's
+constexpr u32 kSamplerStateTable = 0x824D6958;  // S4ep1-nx: TFU 0x82F43DF8; 20 records with the same defaults
+//  // katamari-nx: 0x82D8AE28->0x82AD9308  // TFU-nx: 20 records
 constexpr u32 kTextureSamplers = 26;
 
 u32 TableWord(u32 table, u32 index, u32 field) {
@@ -1031,7 +1033,7 @@ bool TilingBoundSurfaces(Device device) {
 void UpdateTilePredicated(Device device) {
   const u8 flags = device.B(off::Flags);
   const bool predicated = !device.W(off::PredicationSet) && !(flags & 0x08) && !(flags & 0x04) &&
-                          !device.B(0x2F9B) && TilingBoundSurfaces(device);  // katamari-nx: 0x2FA3->0x2F93 (TFU-nx: offset 0x2F93->0x2F9B)
+                          !device.B(0x304B) && TilingBoundSurfaces(device);  // katamari-nx: 0x2FA3->0x2F93 (TFU-nx: offset 0x2F93->0x2F9B) (S4ep1-nx: offset 0x2F9B->0x304B)
   device.SetB(off::Flags, u8((flags & 0xFE) | (predicated ? 1 : 0)));
 }
 
@@ -1202,7 +1204,7 @@ void SetDepthStencilSurface(Device device, u32 surface) {
     device.SetW(off::HiControl, hi_control);
     device.SetB(off::Flags2, u8(Insert(device.B(off::Flags2), hi_control, 5, 1)));
     if ((device.B(off::Flags3) & 0x20) && TilingBoundSurfaces(device))
-      device.SetW(off::SurfaceInfo, Insert(device.W(off::SurfaceInfo), device.W(0x3374), 18, 14));  // katamari-nx: 0x337C->0x336C (TFU-nx: offset 0x336C->0x3374)
+      device.SetW(off::SurfaceInfo, Insert(device.W(off::SurfaceInfo), device.W(0x3424), 18, 14));  // katamari-nx: 0x337C->0x336C (TFU-nx: offset 0x336C->0x3374) (S4ep1-nx: offset 0x3374->0x3424)
     device.Dirty(kPendingStates, Bit(55) | 0x100 | 0x20000);
   } else {
     device.SetW(off::HiControl, device.W(off::HiControl) & ~0xFu);
@@ -1363,7 +1365,8 @@ namespace {
 
 // Per D3DFORMAT (low 6 bits) its format description; 0xF00 marks a float
 // depth format (word_82005200).
-constexpr u32 kFormatTable = 0x8202CBD8;  // katamari-nx: 0x82005200->0x820FA9D0  // TFU-nx: as hooks/resource.cpp
+constexpr u32 kFormatTable = 0x8209BB70;  // S4ep1-nx: TFU 0x8202CBD8; the same words, read at the same place by the paired functions
+//  // katamari-nx: 0x82005200->0x820FA9D0  // TFU-nx: as hooks/resource.cpp
 // The register packets between RB_COPY_CONTROL and RB_COPY_DEST_INFO.
 constexpr u32 kCopyControl = 0x2A18;
 constexpr u32 kCopyDestInfo = 0x2A24;
@@ -1607,9 +1610,9 @@ void Resolve(Device device, u32 flags, u32 dest_texture, float clear_z, u32 clea
 namespace {
 
 constexpr u32 kExportAddress = 0x2898;       // [Index]: the stream's GPU address
-constexpr u32 kExportCount = 0x34C0;         // BeginExports not yet ended (katamari-nx: 0x34C0->0x34A8) (TFU-nx: offset 0x34A8->0x34C0)
-constexpr u32 kExportNanVertexDone = 0x34C4;  // katamari-nx: 0x34C4->0x34AC (TFU-nx: offset 0x34AC->0x34C4)
-constexpr u32 kExportFlags = 0x34C8;  // katamari-nx: 0x34C8->0x34B0 (TFU-nx: offset 0x34B0->0x34C8)
+constexpr u32 kExportCount = 0x3594;         // BeginExports not yet ended (katamari-nx: 0x34C0->0x34A8) (TFU-nx: offset 0x34A8->0x34C0) (S4ep1-nx: offset 0x34C0->0x3594)
+constexpr u32 kExportNanVertexDone = 0x3598;  // katamari-nx: 0x34C4->0x34AC (TFU-nx: offset 0x34AC->0x34C4) (S4ep1-nx: offset 0x34C4->0x3598)
+constexpr u32 kExportFlags = 0x359C;  // katamari-nx: 0x34C8->0x34B0 (TFU-nx: offset 0x34B0->0x34C8) (S4ep1-nx: offset 0x34C8->0x359C)
 // N&B's switches for the two GPU workarounds below (dword_82E1A9E4/9E8). katamari-nx: XDK 2.0.5632 has no memexport
 // (no BeginExport / EndExport, the export hooks are not registered), so no such words: 0 = not set.
 constexpr u32 kSkipExportNanVertex = 0;

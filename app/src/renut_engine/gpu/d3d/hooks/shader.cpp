@@ -754,8 +754,10 @@ u32 D3DDevice_CreatePixelShader_hook(mapped_u32 function) {
 // +0x18), which a Renut record does not have: the first Renut boot's memcpy ran 3.7 GB off the end of .data. With
 // pData null the size goes to *pSizeOfData; otherwise the container is copied to pData. Objects the guest laid out
 // itself (XGRegister*Shader) still go to the original.
-REX_IMPORT(__imp__sub_822E5650, GuestVertexShaderGetFunction, void(u32, u32, u32));
-REX_IMPORT(__imp__sub_822E55F8, GuestPixelShaderGetFunction, void(u32, u32, u32));
+// S4ep1-nx: Sonic 4 links no GetFunction (no function reads a shader's +0x368/+0x36C/+0x370 or its pixel twin): the hooks stay
+// unregistered and the fallbacks below do nothing (TFU imported sub_822E5650 and sub_822E55F8).
+static void GuestVertexShaderGetFunction(u32, u32, u32) {}
+static void GuestPixelShaderGetFunction(u32, u32, u32) {}
 
 static bool ShaderGetFunction(u32 shader_va, u32 data, u32 size_out, bool pixel) {
   auto *record = FindRecord<ShaderRecord>(shader_va, pixel ? RecordKind::PixelShader : RecordKind::VertexShader);
@@ -843,12 +845,12 @@ void D3DVertexShader_Bind5_hook(u32 shader_va, u32 /*flags*/, u32 declaration_va
 
 } // namespace
 
-BANJO_RENUT_HOOK(sub_822E57B8, D3DDevice_CreateVertexShader_hook);  // TFU-nx: Katamari sub_824D6120, d3d_match 0.87 (next 0.33);  // D3DDevice_CreateVertexShader  // katamari-nx: N&B sub_826377C0, signature 0.85 (next 0.55)
-BANJO_RENUT_HOOK(sub_822E56A8, D3DDevice_CreatePixelShader_hook);  // TFU-nx: Katamari sub_824D6010, d3d_match 0.88 (next 0.22);  // D3DDevice_CreatePixelShader  // katamari-nx: N&B sub_826375D8, D3DDevice_CreatePixelShader: CreateVertexShader takes sub_824D6120 (0.85); this one's next best, 0.66
-BANJO_RENUT_HOOK(sub_822E5650, D3DVertexShader_GetFunction_hook);  // TFU-nx: by its body (reads +0x368/+0x36C/+0x370, +0x20), the crash of Renut boot 2
-BANJO_RENUT_HOOK(sub_822E55F8, D3DPixelShader_GetFunction_hook);   // TFU-nx: its pixel twin (+0x28/+0x2C/+0x30, +0x18)
-BANJO_RENUT_HOOK(sub_822E41A0, D3DDevice_CreateVertexDeclaration_hook);  // TFU-nx: Katamari sub_824D4C50, d3d_match 1.00 (next 0.59);  // D3DDevice_CreateVertexDeclaration  // katamari-nx: N&B sub_826379A0, signature 0.77 (next 0.47)
-BANJO_RENUT_UNHOOKED_HOOK(sub_8263FBD0, D3DVertexShader_Bind_hook);
-BANJO_RENUT_HOOK(sub_822EC050, D3DVertexShader_Bind5_hook);  // TFU-nx: by its arguments and body (shader +896/+872, declaration +28, strides, pixel shader +64), the crash of Renut boot 4  // D3DVertexShader_Bind  // katamari-nx: not hooked (D3DVertexShader_Bind: no clear counterpart (sig 0.35/0.28))
-BANJO_RENUT_HOOK(sub_822E3D88, XGRegisterVertexShader_hook);  // TFU-nx: Katamari sub_824D4838, d3d_match 1.00 (next 0.25);  // XGRegisterVertexShader  // katamari-nx: N&B sub_826376C8, signature 0.91 (next 0.32)
-BANJO_RENUT_UNHOOKED_HOOK(sub_826375A0, XGRegisterPixelShader_hook);  // XGRegisterPixelShader  // katamari-nx: not hooked (XGRegisterPixelShader: no counterpart (sig 0.26))
+BANJO_RENUT_HOOK(sub_821B9DD8, D3DDevice_CreateVertexShader_hook);  // TFU-nx: Katamari sub_824D6120, d3d_match 0.87 (next 0.33);  // D3DDevice_CreateVertexShader  // katamari-nx: N&B sub_826377C0, signature 0.85 (next 0.55)  // S4ep1-nx: TFU sub_822E57B8, seed los1 d3d_match 1.00 (same XDK) D3DDevice_CreateVertexShader
+BANJO_RENUT_HOOK(sub_821B9A30, D3DDevice_CreatePixelShader_hook);  // TFU-nx: Katamari sub_824D6010, d3d_match 0.88 (next 0.22);  // D3DDevice_CreatePixelShader  // katamari-nx: N&B sub_826375D8, D3DDevice_CreatePixelShader: CreateVertexShader takes sub_824D6120 (0.85); this one's next best, 0.66  // S4ep1-nx: TFU sub_822E56A8, seed los1 d3d_match 1.00 (same XDK) D3DDevice_CreatePixelShader
+BANJO_RENUT_UNHOOKED_HOOK(sub_822E5650, D3DVertexShader_GetFunction_hook);  // TFU-nx: by its body (reads +0x368/+0x36C/+0x370, +0x20), the crash of Renut boot 2  // S4ep1-nx: no counterpart found in Sonic 4 (docs/renut-map.md, still open)
+BANJO_RENUT_UNHOOKED_HOOK(sub_822E55F8, D3DPixelShader_GetFunction_hook);   // TFU-nx: its pixel twin (+0x28/+0x2C/+0x30, +0x18)  // S4ep1-nx: no counterpart found in Sonic 4 (docs/renut-map.md, still open)
+BANJO_RENUT_HOOK(sub_821BA1D8, D3DDevice_CreateVertexDeclaration_hook);  // TFU-nx: Katamari sub_824D4C50, d3d_match 1.00 (next 0.59);  // D3DDevice_CreateVertexDeclaration  // katamari-nx: N&B sub_826379A0, signature 0.77 (next 0.47)  // S4ep1-nx: TFU sub_822E41A0, seed los1 d3d_match 1.00 (same XDK) D3DDevice_CreateVertexDeclaration
+BANJO_RENUT_UNHOOKED_HOOK(sub_8263FBD0, D3DVertexShader_Bind_hook);  // S4ep1-nx: unhooked as in TFU
+BANJO_RENUT_UNHOOKED_HOOK(sub_822EC050, D3DVertexShader_Bind5_hook);  // TFU-nx: by its arguments and body (shader +896/+872, declaration +28, strides, pixel shader +64), the crash of Renut boot 4  // D3DVertexShader_Bind  // katamari-nx: not hooked (D3DVertexShader_Bind: no clear counterpart (sig 0.35/0.28))  // S4ep1-nx: no counterpart found in Sonic 4 (docs/renut-map.md, still open)
+BANJO_RENUT_HOOK(sub_821B9CE0, XGRegisterVertexShader_hook);  // TFU-nx: Katamari sub_824D4838, d3d_match 1.00 (next 0.25);  // XGRegisterVertexShader  // katamari-nx: N&B sub_826376C8, signature 0.91 (next 0.32)  // S4ep1-nx: TFU sub_822E3D88, seed los1 d3d_match 1.00 (same XDK) XGRegisterVertexShader
+BANJO_RENUT_HOOK(sub_821B99F8, XGRegisterPixelShader_hook);  // XGRegisterPixelShader  // katamari-nx: not hooked (XGRegisterPixelShader: no counterpart (sig 0.26))  // S4ep1-nx: was unhooked in TFU (sub_826375A0); XGRegisterPixelShader: LoS1 d3d_match 1.00 (same XDK)

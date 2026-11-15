@@ -51,3 +51,11 @@ Newest first.
 - Checked: the inherited hand natives and localized copies (RR6/TFU's) show "ON" in the enhancements line but hook
   nothing: `hand.txt` and both localized lists are empty, `generated/hot` holds no functions.
 - Leftover names in the log to rename later: "[tfu] TFU-nx pc build" (build stamp), "rr6_dlc_unlock_keys".
+
+## 2026-11-14 (late): Renut moved to Sonic 4
+
+- TFU's default.xex (Mark's, read-only folder access) translated as the reference; hooks and device layout mapped TFU to
+  Sonic 4 (`docs/renut-map.md`): 299 hooks registered, 151 offset lines, 10 guest data constants, the full viewport
+  passed by value, GetFunction imports dropped (not linked in Sonic 4), queued.cpp's chunk count 42.
+- Tools: `tools/s4_d3d_propagate.py`, `tools/s4_renut_retarget.py`, `tools/s4_device_offsets.py`.
+- Compile check with Renut on (Linux): the hook files, d3d_native_state.cpp and queued.cpp clean.

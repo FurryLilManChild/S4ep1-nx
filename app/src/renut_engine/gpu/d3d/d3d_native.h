@@ -79,7 +79,7 @@ constexpr uint64_t TouchBits(u32 offset, u32 size) {
 // (word 3, bit 31 - n) is its chunks, its texture word and the stream words; any other tag the render state's chunks: the
 // bool and integer constants and the register packets (0x2780-0x2A7F) and the private render state (0x2E00-0x2EFF; on
 // title update 3 0x2E04-0x2F07, its CDevice 4 bytes longer from 0x2AC0 and 8 from 0x2E30).
-constexpr uint64_t kStateTagChunks = TouchBits(0x2780, 0x300) | TouchBits(0x2DFC, 0x108);  // katamari-nx: 0x2E00->0x2DF4 (TFU-nx: offset 0x2DF4->0x2DFC)
+constexpr uint64_t kStateTagChunks = TouchBits(0x2780, 0x300) | TouchBits(0x2DFC, 0x1B8);  // katamari-nx: 0x2E00->0x2DF4 (TFU-nx: offset 0x2DF4->0x2DFC) (S4ep1-nx: offset the length 0x108 -> 0x1B8: Sonic 4's private render state runs +172/+176 later, to 0x2FB3; the start kept, a wider range only marks more)
 struct FetchTagTable {
   uint64_t chunks[32];
 };
@@ -299,26 +299,26 @@ constexpr u32 Flags1 = 0x2ABD;
 constexpr u32 Flags2 = 0x2ABE;
 constexpr u32 Flags3 = 0x2ABF;
 // TU3: the fields from 0x2E30 to 0x3390 are 8 bytes further on.
-constexpr u32 ScissorRect = 0x3184;        // SetScissorRect's RECT (katamari-nx: 0x318C->0x317C) (TFU-nx: offset 0x317C->0x3184)
-constexpr u32 IndexBuffer = 0x3094;  // katamari-nx: 0x309C->0x308C (TFU-nx: offset 0x308C->0x3094)
-constexpr u32 RenderTargets = 0x3098;      // [4] (katamari-nx: 0x30A0->0x3090) (TFU-nx: offset 0x3090->0x3098)
-constexpr u32 DepthStencil = 0x30A8;  // katamari-nx: 0x30B0->0x30A0 (TFU-nx: offset 0x30A0->0x30A8)
-constexpr u32 StreamSources = 0x30AC;      // [16] (katamari-nx: 0x30B4->0x30A4) (TFU-nx: offset 0x30A4->0x30AC)
-constexpr u32 StreamStrides = 0x30F0;      // u8[16], stride / 4 (katamari-nx: 0x30F8->0x30E8) (TFU-nx: offset 0x30E8->0x30F0)
-constexpr u32 Textures = 0x3100;           // [26] (katamari-nx: 0x3108->0x30F8) (TFU-nx: offset 0x30F8->0x3100)
-constexpr u32 Predication = 0x31A4;        // tile predication of the next draws, ~0 none (katamari-nx: 0x31AC->0x319C) (TFU-nx: offset 0x319C->0x31A4)
-constexpr u32 RunPredicationState = 0x31A8;  // katamari-nx: 0x31B0->0x31A0 (TFU-nx: offset 0x31A0->0x31A8)
-constexpr u32 PredicationSet = 0x31AC;     // 1 while SetPredication's mask is non-zero (katamari-nx: 0x31B4->0x31A4) (TFU-nx: offset 0x31A4->0x31AC)
-constexpr u32 TilingSurfaces = 0x31B8;     // the 4 targets and depth BeginTiling bound (katamari-nx: 0x31C0->0x31B0) (TFU-nx: offset 0x31B0->0x31B8)
-constexpr u32 TileCount = 0x31CC;  // katamari-nx: 0x31D4->0x31C4 (TFU-nx: offset 0x31C4->0x31CC)
-constexpr u32 TileRects = 0x31D0;          // D3DRECT[TileCount] (katamari-nx: 0x31D8->0x31C8) (TFU-nx: offset 0x31C8->0x31D0)
-constexpr u32 TileOrigins = 0x32C0;        // per tile, x & ~31, y & ~31 (katamari-nx: 0x32C8->0x32B8) (TFU-nx: offset 0x32B8->0x32C0)
-constexpr u32 TilingExtent = 0x337C;       // widest and tallest tile edge (katamari-nx: 0x3384->0x3374) (TFU-nx: offset 0x3374->0x337C)
-constexpr u32 CommandBuffer = 0x34CC;      // the D3DCommandBuffer being recorded (katamari-nx: 0x34CC->0x34B4) (TFU-nx: offset 0x34B4->0x34CC)
-constexpr u32 SideBuffer = 0x4158;  // katamari-nx: 0x4158->0x4140 (TFU-nx: offset 0x4140->0x4158)
-constexpr u32 AutoDepthStencil = 0x39E8;   // InitializePresentationParameters' surfaces (katamari-nx: 0x39E8->0x39D0) (TFU-nx: offset 0x39D0->0x39E8)
-constexpr u32 AutoFrontBuffer = 0x39EC;  // katamari-nx: 0x39EC->0x39D4 (TFU-nx: offset 0x39D4->0x39EC)
-constexpr u32 AutoBackBuffer = 0x39F0;  // katamari-nx: 0x39F0->0x39D8 (TFU-nx: offset 0x39D8->0x39F0)
+constexpr u32 ScissorRect = 0x3234;        // SetScissorRect's RECT (katamari-nx: 0x318C->0x317C) (TFU-nx: offset 0x317C->0x3184) (S4ep1-nx: offset 0x3184->0x3234)
+constexpr u32 IndexBuffer = 0x3144;  // katamari-nx: 0x309C->0x308C (TFU-nx: offset 0x308C->0x3094) (S4ep1-nx: offset 0x3094->0x3144)
+constexpr u32 RenderTargets = 0x3148;      // [4] (katamari-nx: 0x30A0->0x3090) (TFU-nx: offset 0x3090->0x3098) (S4ep1-nx: offset 0x3098->0x3148)
+constexpr u32 DepthStencil = 0x3158;  // katamari-nx: 0x30B0->0x30A0 (TFU-nx: offset 0x30A0->0x30A8) (S4ep1-nx: offset 0x30A8->0x3158)
+constexpr u32 StreamSources = 0x315C;      // [16] (katamari-nx: 0x30B4->0x30A4) (TFU-nx: offset 0x30A4->0x30AC) (S4ep1-nx: offset 0x30AC->0x315C)
+constexpr u32 StreamStrides = 0x31A0;      // u8[16], stride / 4 (katamari-nx: 0x30F8->0x30E8) (TFU-nx: offset 0x30E8->0x30F0) (S4ep1-nx: offset 0x30F0->0x31A0)
+constexpr u32 Textures = 0x31B0;           // [26] (katamari-nx: 0x3108->0x30F8) (TFU-nx: offset 0x30F8->0x3100) (S4ep1-nx: offset 0x3100->0x31B0)
+constexpr u32 Predication = 0x3254;        // tile predication of the next draws, ~0 none (katamari-nx: 0x31AC->0x319C) (TFU-nx: offset 0x319C->0x31A4) (S4ep1-nx: offset 0x31A4->0x3254)
+constexpr u32 RunPredicationState = 0x3258;  // katamari-nx: 0x31B0->0x31A0 (TFU-nx: offset 0x31A0->0x31A8) (S4ep1-nx: offset 0x31A8->0x3258)
+constexpr u32 PredicationSet = 0x325C;     // 1 while SetPredication's mask is non-zero (katamari-nx: 0x31B4->0x31A4) (TFU-nx: offset 0x31A4->0x31AC) (S4ep1-nx: offset 0x31AC->0x325C)
+constexpr u32 TilingSurfaces = 0x3268;     // the 4 targets and depth BeginTiling bound (katamari-nx: 0x31C0->0x31B0) (TFU-nx: offset 0x31B0->0x31B8) (S4ep1-nx: offset 0x31B8->0x3268)
+constexpr u32 TileCount = 0x327C;  // katamari-nx: 0x31D4->0x31C4 (TFU-nx: offset 0x31C4->0x31CC) (S4ep1-nx: offset 0x31CC->0x327C)
+constexpr u32 TileRects = 0x3280;          // D3DRECT[TileCount] (katamari-nx: 0x31D8->0x31C8) (TFU-nx: offset 0x31C8->0x31D0) (S4ep1-nx: offset 0x31D0->0x3280)
+constexpr u32 TileOrigins = 0x3370;        // per tile, x & ~31, y & ~31 (katamari-nx: 0x32C8->0x32B8) (TFU-nx: offset 0x32B8->0x32C0) (S4ep1-nx: offset 0x32C0->0x3370)
+constexpr u32 TilingExtent = 0x342C;       // widest and tallest tile edge (katamari-nx: 0x3384->0x3374) (TFU-nx: offset 0x3374->0x337C) (S4ep1-nx: offset 0x337C->0x342C)
+constexpr u32 CommandBuffer = 0x35A0;      // the D3DCommandBuffer being recorded (katamari-nx: 0x34CC->0x34B4) (TFU-nx: offset 0x34B4->0x34CC) (S4ep1-nx: offset 0x34CC->0x35A0)
+constexpr u32 SideBuffer = 0x4230;  // katamari-nx: 0x4158->0x4140 (TFU-nx: offset 0x4140->0x4158) (S4ep1-nx: offset 0x4158->0x4230)
+constexpr u32 AutoDepthStencil = 0x3ABC;   // InitializePresentationParameters' surfaces (katamari-nx: 0x39E8->0x39D0) (TFU-nx: offset 0x39D0->0x39E8) (S4ep1-nx: offset 0x39E8->0x3ABC)
+constexpr u32 AutoFrontBuffer = 0x3AC0;  // katamari-nx: 0x39EC->0x39D4 (TFU-nx: offset 0x39D4->0x39EC) (S4ep1-nx: offset 0x39EC->0x3AC0)
+constexpr u32 AutoBackBuffer = 0x3AC4;  // katamari-nx: 0x39F0->0x39D8 (TFU-nx: offset 0x39D8->0x39F0) (S4ep1-nx: offset 0x39F0->0x3AC4)
 }  // namespace off
 
 // Flags (0x2ABC) bits: 0x01 the draws that follow run in each tile's pass,

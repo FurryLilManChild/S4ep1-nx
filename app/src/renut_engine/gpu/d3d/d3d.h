@@ -215,7 +215,7 @@ static_assert(sizeof(ControlPacket) == 48);
 
 // Public D3DDevice (0x2B00 bytes in N&B's XDK) followed by the CDevice-private
 // tail of the 0x5E00-byte allocation Direct3D_CreateDevice makes.
-constexpr u32 kDeviceAllocSize = 0x5780;  // katamari-nx: 0x5E00->0x5700 (TFU-nx: offset 0x5700->0x5780)
+constexpr u32 kDeviceAllocSize = 0x5F00;  // katamari-nx: 0x5E00->0x5700 (TFU-nx: offset 0x5700->0x5780) (S4ep1-nx: offset 0x5780->0x5F00)
 constexpr u32 kDeviceAlignment = 0x80;
 
 struct Device {
@@ -269,20 +269,20 @@ static_assert(offsetof(Device, m_ZFilter) == 0x2A8A);
 // the allocation, from its decompilation at 0x82634990).
 constexpr u32 kDeviceOffsetCreationThreadId = 10888;  // GetCurrentThreadId()
 constexpr u32 kDeviceOffsetIsTitleProcess = 10892;    // KeGetCurrentProcessType() == 2
-constexpr u32 kDeviceOffsetBehaviorFlags = 22300;     // Direct3D_CreateDevice arg 4 (katamari-nx: 23980->22264) (TFU-nx: offset 22264->22300)
+constexpr u32 kDeviceOffsetBehaviorFlags = 24200;     // Direct3D_CreateDevice arg 4 (katamari-nx: 23980->22264) (TFU-nx: offset 22264->22300) (S4ep1-nx: offset 22300->24200)
 
 // Bound objects the Set* calls store in the CDevice-private area (guest VAs).
 // TU3's CDevice grew by 4 bytes from 0x2AC0 and by 8 from 0x2E30; the fields
 // from 0x3390 on are where they were.
-constexpr u32 kDeviceOffsetVertexDeclaration = 0x2E2C;  // SetVertexDeclaration (katamari-nx: 0x2E30->0x2E24) (TFU-nx: offset 0x2E24->0x2E2C)
-constexpr u32 kDeviceOffsetIndexBuffer = 0x3094;        // SetIndices (katamari-nx: 0x309C->0x308C) (TFU-nx: offset 0x308C->0x3094)
-constexpr u32 kDeviceOffsetRenderTargets = 0x3098;      // SetRenderTarget, [4] (katamari-nx: 0x30A0->0x3090) (TFU-nx: offset 0x3090->0x3098)
-constexpr u32 kDeviceOffsetDepthStencil = 0x30A8;       // SetDepthStencilSurface (katamari-nx: 0x30B0->0x30A0) (TFU-nx: offset 0x30A0->0x30A8)
-constexpr u32 kDeviceOffsetStreamSources = 0x30AC;      // SetStreamSource, [16] (katamari-nx: 0x30B4->0x30A4) (TFU-nx: offset 0x30A4->0x30AC)
-constexpr u32 kDeviceOffsetStreamStrides = 0x30F0;      // SetStreamSource, u8[16], stride / 4 (katamari-nx: 0x30F8->0x30E8) (TFU-nx: offset 0x30E8->0x30F0)
-constexpr u32 kDeviceOffsetTextures = 0x3100;           // SetTexture, [kTextureFetchSlots] (katamari-nx: 0x3108->0x30F8) (TFU-nx: offset 0x30F8->0x3100)
-constexpr u32 kDeviceOffsetPixelShader = 0x3194;        // SetPixelShader (katamari-nx: 0x319C->0x318C) (TFU-nx: offset 0x318C->0x3194)
-constexpr u32 kDeviceOffsetVertexShader = 0x3198;       // SetVertexShader (katamari-nx: 0x31A0->0x3190) (TFU-nx: offset 0x3190->0x3198)
+constexpr u32 kDeviceOffsetVertexDeclaration = 0x2ED8;  // SetVertexDeclaration (katamari-nx: 0x2E30->0x2E24) (TFU-nx: offset 0x2E24->0x2E2C) (S4ep1-nx: offset 0x2E2C->0x2ED8)
+constexpr u32 kDeviceOffsetIndexBuffer = 0x3144;        // SetIndices (katamari-nx: 0x309C->0x308C) (TFU-nx: offset 0x308C->0x3094) (S4ep1-nx: offset 0x3094->0x3144)
+constexpr u32 kDeviceOffsetRenderTargets = 0x3148;      // SetRenderTarget, [4] (katamari-nx: 0x30A0->0x3090) (TFU-nx: offset 0x3090->0x3098) (S4ep1-nx: offset 0x3098->0x3148)
+constexpr u32 kDeviceOffsetDepthStencil = 0x3158;       // SetDepthStencilSurface (katamari-nx: 0x30B0->0x30A0) (TFU-nx: offset 0x30A0->0x30A8) (S4ep1-nx: offset 0x30A8->0x3158)
+constexpr u32 kDeviceOffsetStreamSources = 0x315C;      // SetStreamSource, [16] (katamari-nx: 0x30B4->0x30A4) (TFU-nx: offset 0x30A4->0x30AC) (S4ep1-nx: offset 0x30AC->0x315C)
+constexpr u32 kDeviceOffsetStreamStrides = 0x31A0;      // SetStreamSource, u8[16], stride / 4 (katamari-nx: 0x30F8->0x30E8) (TFU-nx: offset 0x30E8->0x30F0) (S4ep1-nx: offset 0x30F0->0x31A0)
+constexpr u32 kDeviceOffsetTextures = 0x31B0;           // SetTexture, [kTextureFetchSlots] (katamari-nx: 0x3108->0x30F8) (TFU-nx: offset 0x30F8->0x3100) (S4ep1-nx: offset 0x3100->0x31B0)
+constexpr u32 kDeviceOffsetPixelShader = 0x3244;        // SetPixelShader (katamari-nx: 0x319C->0x318C) (TFU-nx: offset 0x318C->0x3194) (S4ep1-nx: offset 0x3194->0x3244)
+constexpr u32 kDeviceOffsetVertexShader = 0x3248;       // SetVertexShader (katamari-nx: 0x31A0->0x3190) (TFU-nx: offset 0x3190->0x3198) (S4ep1-nx: offset 0x3198->0x3248)
 // In m_TessellatorPacket, which holds registers 0x2280 on: VGT_HOS_CNTL
 // (tessellation mode in bits 0-1: 0 discrete, 1 continuous, 2 adaptive) and
 // the float VGT_HOS_MAX_TESS_LEVEL / VGT_HOS_MIN_TESS_LEVEL.
@@ -293,22 +293,22 @@ constexpr u32 kDeviceOffsetMinTessellationLevel = 0x2980;
 // (D3DDevice_SetPredication 0x821C9240 and SetCommandBufferPredication).
 // Bits 2i and 2i+1 run the commands in tile i's pass of predicated tiling (Z
 // and render).
-constexpr u32 kDeviceOffsetPredication = 0x31A4;  // katamari-nx: 0x31AC->0x319C (TFU-nx: offset 0x319C->0x31A4)
+constexpr u32 kDeviceOffsetPredication = 0x3254;  // katamari-nx: 0x31AC->0x319C (TFU-nx: offset 0x319C->0x31A4) (S4ep1-nx: offset 0x31A4->0x3254)
 // D3DCommandBuffer being recorded (BeginCommandBuffer sets, End clears).
-constexpr u32 kDeviceOffsetCommandBuffer = 13516;  // katamari-nx: 13516->13492 (TFU-nx: offset 13492->13516)
+constexpr u32 kDeviceOffsetCommandBuffer = 13728;  // katamari-nx: 13516->13492 (TFU-nx: offset 13492->13516) (S4ep1-nx: offset 13516->13728)
 // The leading part of the device the draw, clear and resolve paths read (up
 // to and including kDeviceOffsetPredication); a copy of it stands in for the
 // device when a recorded command buffer is replayed.
-constexpr u32 kDeviceSnapshotSize = 0x31A8;  // katamari-nx: 0x31B0->0x31A0 (TFU-nx: offset 0x31A0->0x31A8)
+constexpr u32 kDeviceSnapshotSize = 0x3258;  // katamari-nx: 0x31B0->0x31A0 (TFU-nx: offset 0x31A0->0x31A8) (S4ep1-nx: offset 0x31A8->0x3258)
 static_assert(kDeviceOffsetVertexShader + 4 <= kDeviceSnapshotSize);
 static_assert(kDeviceOffsetPredication + 4 <= kDeviceSnapshotSize);
 // m_pRing the inline end of BeginVertices / BeginIndexedVertices restores.
-constexpr u32 kDeviceOffsetVerticesRingEnd = 0x3484;  // katamari-nx: 0x3484->0x3474 (TFU-nx: offset 0x3474->0x3484)
+constexpr u32 kDeviceOffsetVerticesRingEnd = 0x3554;  // katamari-nx: 0x3484->0x3474 (TFU-nx: offset 0x3474->0x3484) (S4ep1-nx: offset 0x3484->0x3554)
 // Swap bookkeeping (D3DDevice_Swap 0x822554F8).
-constexpr u32 kDeviceOffsetSwapCount = 0x40B0;  // katamari-nx: 0x40B0->0x4098 (TFU-nx: offset 0x4098->0x40B0)
+constexpr u32 kDeviceOffsetSwapCount = 0x4188;  // katamari-nx: 0x40B0->0x4098 (TFU-nx: offset 0x4098->0x40B0) (S4ep1-nx: offset 0x40B0->0x4188)
 constexpr u32 kDeviceOffsetFenceTag = 0x2A9C;         // current fence tag
 constexpr u32 kDeviceOffsetSwapFenceTag = 0x2AB0;     // fence tag at the last Swap
-constexpr u32 kDeviceOffsetPresentFenceTag = 0x3A5C;  // fence tag of the last presented frame (katamari-nx: 0x3A5C->0x3A44) (TFU-nx: offset 0x3A44->0x3A5C)
+constexpr u32 kDeviceOffsetPresentFenceTag = 0x3B30;  // fence tag of the last presented frame (katamari-nx: 0x3A5C->0x3A44) (TFU-nx: offset 0x3A44->0x3A5C) (S4ep1-nx: offset 0x3A5C->0x3B30)
 constexpr u32 kDeviceOffsetSwapFlags = 0x2ABD;
 constexpr u8 kSwapFlagPending = 0x10;
 

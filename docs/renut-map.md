@@ -8,7 +8,7 @@ translated with TFU-nx's own manifest and config) and LoS1's (SHA-256 `0287bbd8.
 LoS1 has Sonic 4's XDK build (11626) but plain D3D9; Sonic 4 links D3D9LTCG, so some small functions are reshaped or
 inlined into the game's code.
 
-## Functions (2026-11-14): 277 of TFU's 316 paired
+## Functions (2026-11-14): 296 of TFU's 316 hooks moved, plus 3 TFU could not place
 
 | How | Count | Evidence |
 |---|---|---|
@@ -45,3 +45,53 @@ name for name against LoS1-nx's `d3d.h` constants (LoS1's layout, verified in th
 
 Open: 11824 and 11832 (between the +172 and +176 fields), the tiling block's +180 fields, 21532..21600, TFU's -1 words
 at 21700 and gamma pair 22272/22276.
+
+## Applied (2026-11-14, evening)
+
+Hooks: `tools/s4_renut_retarget.py` (pairs plus its MANUAL and LATENT tables, each with its evidence; every changed line
+carries `S4ep1-nx:`): 296 moved, 3 newly hooked (BeginVertices `sub_821BF968`, DrawVerticesUP `sub_821BFE00`,
+XGRegisterPixelShader `sub_821B99F8`), 25 compiled unregistered, 35 left unregistered as in TFU.
+
+The 20 hand pairs (MANUAL), by call pattern and fields: XenonGpu_Initialize `sub_821D5578` (its only caller is the
+device init `sub_821CF800`, which is TFU's `sub_822E1950` with VdInitializeEngines inlined), Direct3D_CreateDevice
+`sub_82494160`, D3DDevice_SetViewport `sub_821B35C8` (D3D_SetViewport inlined into it; BeginTiling and EndTiling call it as
+often as TFU's do), ResetAllState `sub_821B30F8`, the surface locks, texture size helpers and surface-level getters (link
+order and call neighbours), SetVertexShader `sub_821B9EC8` and SetPixelShader `sub_821B9B20` (they read and write the
+device's +0x3248 / +0x3244), CleanupGprAllocationSetup `sub_821B8EB0`, UnsetAll `sub_821C4BD8`.
+
+Unregistered (no standalone function found; mostly LTCG): InsertCallback (watch: if the game inserts GPU callbacks,
+they are not seen), AddRef, Acquire/ReleaseThreadOwnership, DrawIndexedTessellatedVertices, Clear (inlined into the game's
+scene begin `sub_8249CC00`; ClearF is hooked), the vertex, index and constant buffer locks and unlocks, LineTexture
+LockRect, ArrayTexture UnlockRect (folded with Surface UnlockRect), CreateIndexBuffer, SetStreamSource, SetIndices,
+SetVertexDeclaration, D3D_SetViewport, the B constant setters, Vertex/PixelShader GetFunction (not linked: no function of
+their shape).
+
+Device offsets: `tools/s4_device_offsets.py`, 151 lines (`renut_map/s4_offsets_report.txt`). Field checks on Sonic 4's
+own code: ClearF, BeginTiling and EndTiling (the tiling block and the clear Z / stencil all +176, not +180),
+XenonGpu_Initialize (TFU's `std 0x2E30` is `std 0x2EE0`: Sonic 4's 4 extra bytes sit right after the declaration),
+the device init (-1 words 21776/21780, perf frequency 21804, the 41 -1 words `li 0x29` at +0x5C30 = 23600),
+InitializePresentationParameters (display mode +0x5500..0x5508), SetPWLGamma and Swap (gamma pending 24172/24176, +0x541C
+-> 21748, 21668 -> 23568). LoS1-nx's device.cpp values for 0x541C, 0x5D90/94 and 0x5DAC are N&B's numbers carried over,
+not LoS1 measurements: not used. kStateTagChunks' second range widened to 0x2DFC + 0x1B8 (covers to 0x2FB3); the
+replay's unread window kept at 10880..11776 (both on the safe side). queued.cpp's read-chunk count: 42 (TFU 39).
+
+Guest data (by `ld`/`lwz` after `lis` at the same place in paired functions, then by content):
+
+| Constant | TFU | Sonic 4 | Check |
+|---|---|---|---|
+| render / sampler state tables | 0x82F43938 / 0x82F43DF8 | 0x824D6498 / 0x824D6958 | defaults row for row |
+| format table | 0x8202CBD8 | 0x8209BB70 | the same words |
+| D3DCAPS9 | 0x8202D230 | 0x8209BD10 | the same words |
+| XDK build qword | 0x82F43EE8 | 0x824E0A38 | CreateDevice `ld` then `std +0x2A80`; encodes 0x2D6A = 11626 |
+| VdGlobalDevice import slot | 0x820008B0 | 0x820004FC | 2 paired references; a kernel variable address as TFU's |
+| XPhysicalAlloc's no-large-pages flag | 0x82FBDB04 | 0x824E2994 | 1 paired reference |
+| HiZ owner | 0x8303ED58 | 0x825836CC | 4 paired references |
+| full viewport | 0x8202CAEC | none (inlined) | Renut passes TFU's values (0, 0, 65535, 65535, 0, 1) |
+| GameXMemFree / GetCurrentThreadId | sub_821CAE78 / sub_822F7C38 | sub_82223908 / sub_82223E18 | LoS1 1.00; CreateDevice's call order |
+
+Compile check (Linux, clang 20, Renut on, `-fsyntax-only` with the build's own commands): the five hook files,
+d3d_native_state.cpp and backend/queued.cpp clean. render/draw.cpp needs the host shader headers (DXC, Windows): checked
+in Mark's PC build.
+
+Shaders: default.xex holds only 8 Xenos containers; the rest come from the AMB files or the run-time compiler (open).
+Renut captures every shader its cache lacks at Create time, so the first PC run fills the dump either way.
