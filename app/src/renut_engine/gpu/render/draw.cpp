@@ -9445,7 +9445,8 @@ bool DrawsWithoutPixelShader(const GuestDevice &device, const Targets &t, const 
 // banjo-nx (2026-10-18, matching RenderDoc captures of Ryujinx to the game's shaders): banjo_renut_diag_draw_log_s
 // seconds after the first draw, every draw of the next two frames: its shaders, counts, target and state, in order.
 void DrawLog(const DrawCall &call, const Geometry &geometry, const ShaderRecord *vs, const ShaderRecord *ps,
-             const Targets &targets, const PipelineKey &key, const SharedConstants &sc, u32 export_count) {
+             const Targets &targets, const PipelineKey &key, const SharedConstants &sc, u32 export_count,
+             const FloatConstants &vs_constants, const FloatConstants &ps_constants) {
   static const int32_t at = REXCVAR_GET(banjo_renut_diag_draw_log_s);
   if (at <= 0)
     return;
@@ -9474,6 +9475,17 @@ void DrawLog(const DrawCall &call, const Geometry &geometry, const ShaderRecord 
             c0 ? int(c0->format) : -1, targets.color_count, targets.depth ? int(targets.depth->format) : -1,
             key.depth_control, key.blend_control[0], key.color_mask, key.alpha_to_coverage, sc.vertex_fetch_bytes,
             export_count);
+  // S4ep1-nx (2026-11-15, the title screen's white sky): float constants the title's shaders read: the vertex shaders'
+  // fog range (c14.x end, c15.x scale) and colour (c10), the pixel shaders' c0 to c3 (fog colour, material).
+  auto reg = [](const FloatConstants &k, u32 r) {
+    float f[4];
+    const be_u32 *w = reinterpret_cast<const be_u32 *>(k.Register(r));
+    for (int i = 0; i < 4; ++i) f[i] = std::bit_cast<float>(u32(w[i]));
+    return fmt::format("{:.4g} {:.4g} {:.4g} {:.4g}", f[0], f[1], f[2], f[3]);
+  };
+  RGPU_INFO("[drawlog]   vs c10 ({}) c14 ({}) c15 ({}); ps c0 ({}) c1 ({}) c2 ({}) c3 ({})",
+            reg(vs_constants, 10), reg(vs_constants, 14), reg(vs_constants, 15), reg(ps_constants, 0),
+            reg(ps_constants, 1), reg(ps_constants, 2), reg(ps_constants, 3));
 }
 
 #if defined(PLUME_DEKO3D)
@@ -13315,7 +13327,7 @@ bool DrawStateLocked(const u8 *device_state, const DrawCall &call, const ReplayC
   static const bool draw_log = !REXCVAR_GET(banjo_renut_lean_diagnostics) ||
                                REXCVAR_GET(banjo_renut_diag_draw_log_s) > 0;
   if (draw_log)
-    DrawLog(call, geometry, vs, ps, targets, key, sc, export_count);
+    DrawLog(call, geometry, vs, ps, targets, key, sc, export_count, vs_constants, ps_constants);
   // banjo-nx (2026-10-19, banjo_renut_resolve_skip): the targets this draw can write.
   for (u32 i = 0; i < targets.color_count && i < key.color_count; ++i)
     if ((key.color_mask >> (4 * i)) & 0xF) {
