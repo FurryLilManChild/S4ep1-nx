@@ -205,3 +205,18 @@ Newest first.
   variant cache from the PC list, renut_001-004's run-time variants and the console's file merged: 367 variants,
   1,040 KB, 0 failed (81ca2d573e44597b). Mark's out\pc\shader_capture now holds the same 112 (two from the cloud dump
   added), so the PC build's shader table matches.
+
+## 2026-11-15 (night): Switch test 4: the resolution change never took effect
+
+- Test 4 (build 0f8625ae, 112 shaders, cache 367 variants): special stage drawn (0 shaders missing, 0 draws dropped);
+  no draw waited for a shader compile (24 compiled in the background); frame-thread steps 600-601 in every window.
+  Display 48.9-60.1 new images a second, GPU 4.7-20.1 ms a frame at 460.8 MHz, CPU 68-86 % of 400. Title sky still
+  white (also on the PC, so not a Switch-only problem).
+- The log: "Internal heights: handheld 1280x720" and "Depth target ... drawn at 1920x1080". Two causes: (1) the cvar's
+  range is 480-1080, so 360 fell back to the default 720; (2) the internal resolution only applies to frames with the
+  game's final composite (banjo_renut_smaa_after_ps, a TFU / N&B hash); Sonic 4 never has one, so every frame drew at
+  the display scale, 1x of 1920x1080. TFU's 540 never applied to Sonic 4 either: every Switch test drew 1920x1080.
+- Fix: range 360-1080 for both heights; s4_scale_without_composite (on): every frame at the internal resolution, the
+  HUD with it. Variant cache merged with the console's file (391 variants, ce2ea77feb11e647).
+- Captures (1920x1080 PNGs): a level, the loading screen, the special stage's pause, the zone title card, a black
+  frame.

@@ -297,12 +297,12 @@ REXCVAR_DEFINE_INT32(banjo_renut_render_height_handheld, 720, "Banjo/Enhancement
                      "Frames without that composite for half a second (menus, loading) are drawn at the display's "
                      "resolution whole. Shadow maps and the post-processing buffers keep the console's sizes. From the "
                      "next frame")
-    .range(480, 1080);
+    .range(360, 1080);  // S4ep1-nx (2026-11-15): from 480: Sonic 4 draws 1920x1080, so 360 (1/2) gives 960x540
 REXCVAR_DEFINE_INT32(banjo_renut_render_height_docked, 720, "Banjo/Enhancements",
                      "NOT exact, the user's request (2026-10-21): banjo_renut_render_height_handheld for docked mode "
                      "(864 = 1536x864, 1.2x the game's; 900 = 1600x900; with banjo_renut_display_height_docked = 1080 "
                      "the HUD at 1920x1080). Read at start")
-    .range(480, 1080);
+    .range(360, 1080);  // S4ep1-nx (2026-11-15): from 480: Sonic 4 draws 1920x1080, so 360 (1/2) gives 960x540
 REXCVAR_DEFINE_INT32(banjo_renut_display_height_docked, 720, "Banjo/Enhancements",
                      "The display's resolution when docked on deko3d (2026-10-21; the swapchain change from sa2-nx "
                      "1.0.3.1): 720 = 1280x720, which the console scales to the TV; 1080 = the swapchain made at "

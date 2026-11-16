@@ -40,6 +40,11 @@ REXCVAR_DEFINE_STRING(renut_resolution, "720p", "Nuts&Bolts/Graphics",
                       "1080p, 1440p or 4K (2160 lines). Applies from the next frame.")
     .allowed({"480p", "720p", "1080p", "1440p", "4K"});
 
+REXCVAR_DEFINE_BOOL(s4_scale_without_composite, true, "S4ep1-nx",
+                    "Every frame at the internal resolution (banjo_renut_render_height_*), the HUD with it, as Sonic 4's "
+                    "final composite shader is not known (without it every frame drew at the display scale). "
+                    "render/surfaces.cpp");
+
 namespace renut::gpu {
 
 void ForgetBoundTargetsLocked();  // sasrt-nx (2026-10-20): render/draw.cpp
@@ -532,7 +537,12 @@ void LatchResolutionScaleLocked() {
     g_frames_without_composite = g_composite_seen ? 0 : std::min(g_frames_without_composite + 1, kMenuFrames);
     g_composite_seen = false;
     ui = display_scale;
-    scale = g_frames_without_composite < kMenuFrames ? render_scale : display_scale;
+    // S4ep1-nx (2026-11-15, s4_scale_without_composite): the internal resolution needs the game's final composite
+    // (banjo_renut_smaa_after_ps, a TFU / N&B shader hash), and Sonic 4's is not known: every frame counted as a menu
+    // frame and drew at the display scale, 1x of the game's 1920x1080 (Switch test 4's log: "drawn at 1920x1080"). On:
+    // every frame at the internal resolution, the HUD with it (scaled to the display by the present).
+    scale = (g_frames_without_composite < kMenuFrames || REXCVAR_GET(s4_scale_without_composite)) ? render_scale
+                                                                                                   : display_scale;
 #if defined(PLUME_DEKO3D)
     // The swapchain at the display's size (from sa2-nx 1.0.3.1): the present scales the frame to it.
     static int32_t last_display = 0;
