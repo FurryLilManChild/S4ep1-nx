@@ -17,12 +17,12 @@ needs a full playthrough.
 
 ## Installing
 
-1. Copy the zip's `switch` folder to the root of the SD card: `/switch/s4ep1-nx/` gets `renut.nro`, `renut.toml` and
+1. Copy the zip's `switch` folder to the root of the SD card: `/switch/s4ep1-nx/` gets `s4ep1.nro`, `renut.toml` and
    `deko3d_shaders.bin`.
 2. Make `/switch/s4ep1-nx/game_root/` and put `default.xex` and `data.cpk` from your own copy of the XBLA game in it
    (extracted from its package; `default.xex` SHA-256
    `0a2525018d23e908cdcefd779e350d49f632f5773baf248108435cc8dac00a7b`).
-3. Start the homebrew menu through title takeover (hold R while opening a game), not the Album, and run `renut.nro`.
+3. Start the homebrew menu through title takeover (hold R while opening a game), not the Album, and run `s4ep1.nro`.
 
 No game files are included.
 

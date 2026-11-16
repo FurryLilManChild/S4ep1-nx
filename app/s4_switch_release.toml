@@ -1,4 +1,4 @@
-# S4ep1-nx 0.5.0: the release settings (renut.toml next to renut.nro). Made from app/s4_switch_test.toml with the
+# S4ep1-nx 0.5.0: the release settings (renut.toml next to s4ep1.nro). Made from app/s4_switch_test.toml with the
 # test diagnostics off (profiler stacks, screenshots, GPU profile, main-thread wait log). The port menu (- and +
 # together) changes the FPS counter, resolution, handheld GPU profile and stick dead zone and saves them here.
 
