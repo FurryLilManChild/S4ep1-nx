@@ -204,7 +204,10 @@ REXCVAR_DEFINE_BOOL(sasrt_renut_fixed16_clamp, true, "Banjo/Enhancements",
     .lifecycle(rex::cvar::Lifecycle::kInitOnly);
 
 // sasrt-nx (2026-10-20).
-REXCVAR_DEFINE_BOOL(sasrt_renut_depth_restore, true, "Banjo/Enhancements",
+// S4ep1-nx (2026-11-15): off. Sonic 4's title draws its reflection pass's resolved depth back as colour (ps EFB11876797D1652)
+// into EDRAM the main pass's depth target shares; taken as the depth, it failed every sky and island draw above the horizon
+// (the white sky; PC A/B 2026-11-15: off gives the console's picture, docs/progress-log.md).
+REXCVAR_DEFINE_BOOL(sasrt_renut_depth_restore, false, "Banjo/Enhancements",
                     "From sasrt-nx: the EDRAM depth restore: a depth target bound over the EDRAM a 32-bit colour target wrote "
                     "since takes its words as its depth, as on the console, where they are one memory (a game drawing a "
                     "resolved depth back as colour to restore it). Off: the depth target keeps its own")

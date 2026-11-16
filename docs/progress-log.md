@@ -220,3 +220,26 @@ Newest first.
   HUD with it. Variant cache merged with the console's file (391 variants, ce2ea77feb11e647).
 - Captures (1920x1080 PNGs): a level, the loading screen, the special stage's pause, the zone title card, a black
   frame.
+
+## 2026-11-15 (late night): 0.5.0 work: port menu, cleanup, the title's white sky found
+
+- Switch test 5 (Mark): steady 60 at stock clocks, drawn at 960x540, 583-601 shown frames per 10 s. Plan for 0.5.0
+  agreed: cleanup, port menu, the white sky, the save prompt's size, docked check, then release.
+- Port menu (`app/src/s4/s4_menu.cpp`, from LoS1-nx): - and + together (F8 on the PC): FPS counter, handheld and docked
+  resolution, handheld GPU profile, stick dead zone (`input_stick_deadzone`, new in the Switch input driver, 0 by
+  default). Save and close rewrites only its keys in renut.toml. The SDK got LoS1's `AppOverlayOpen` and
+  `config_file_path`. XAM message boxes (the save prompt) drawn at 2x.
+- Cleanup: S4ep1-nx build stamp and log tags, TFU's job-idle code and tool removed, RR6's DLC hiding off, the speed
+  diagnostics trimmed to one `[s4 speed]` line every 10 s.
+- White sky, PC runs on Mark's machine (most of them unattended, at his request):
+  - Draw log: fog constants sane (colour 0.7/0.95/1, end 500); not the cause.
+  - Texture dump and screenshot: the reflection image is right; the main pass loses everything above the horizon.
+  - Tile predication: no draw is cut to a tile (`s4_tile_predication_off` made no difference).
+  - Frame capture before each resolve (`s4_diag_capture_present`) and resolve trace: the main pass's sky and island
+    draws never reach the target. Four of Renut's skip shortcuts off: no change. No scissor: no change. Depth test off:
+    the sky appears. So the main pass fails its depth test above the horizon.
+  - Cause: between the passes the game draws the reflection's resolved depth back as colour (ps EFB11876797D1652,
+    columns swapped by 40, the EDRAM depth layout) into EDRAM its depth target shares. sasrt-nx's EDRAM depth restore
+    (`sasrt_renut_depth_restore`) then takes those words as the main pass's depth, and the sky fails against them.
+    With it off the title matches Mark's photos of the 360 (`out\logs\round\norestore.png`). Default now off.
+  - To check in the next Switch test: levels and special stages still look right with the restore off.

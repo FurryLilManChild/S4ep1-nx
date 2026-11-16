@@ -36,3 +36,6 @@ Mistakes and wrong conclusions from this port, newest first. Reviewed with Mark 
 - 2026-11-15: a resolution setting copied from TFU was "fixed" by changing the toml without checking that it took
   effect. The cvar's range rejected the value and the scale only applied with a known composite shader. Any setting
   change must have a log line that proves the new value is in force, and the first log after it must be checked.
+- 2026-11-15: a feature carried over from another game's port (sasrt-nx's EDRAM depth restore) broke a picture in this
+  one (the title's white sky). When a picture is wrong and shaders, textures and constants check out, A/B the inherited
+  renderer features (depth restore, skips, hand-overs) before writing new code.
