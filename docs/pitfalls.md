@@ -33,3 +33,6 @@ Mistakes and wrong conclusions from this port, newest first. Reviewed with Mark 
 - 2026-11-15: banjo_late_input (on by default since banjo-nx) delays the first controller read after each Swap. It
   assumes the game reads input on the thread that swaps. Sonic 4 reads on a separate frame thread: the delay put the
   game in slow motion (a quarter speed) on Renut only. Check where a new game reads its controller before keeping it.
+- 2026-11-15: a resolution setting copied from TFU was "fixed" by changing the toml without checking that it took
+  effect. The cvar's range rejected the value and the scale only applied with a known composite shader. Any setting
+  change must have a log line that proves the new value is in force, and the first log after it must be checked.
