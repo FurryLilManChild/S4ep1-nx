@@ -822,6 +822,8 @@ BANJO_RENUT_HOOK(sub_821B9B20, D3DDevice_SetPixelShader_hook);  // TFU-nx: Katam
 //     0), sub_82493890 (flips the index);
 //  3. if [0x82586118] is set: sub_82223E98([obj + 8]), then sub_82488738(obj, the frame time in ms from three float
 //     constants).
+REXCVAR_DEFINE_INT32(s4_diag_capture_present, 0, "S4ep1-nx",
+                     "Diagnostic: the Present whose frame is read back before each resolve and EndTiling (0 = off)");
 REXCVAR_DEFINE_BOOL(s4_pacer_fix, true, "S4ep1-nx",
                     "Sonic 4's frame thread: a Present that comes after a deadline step does not wake it again, so "
                     "the game steps 60 times a second when frames are late (off: the game's own rule, which ran up "
@@ -845,6 +847,25 @@ BANJO_RENUT_HOOK_RAW(sub_8249E2F8) {
     sub_82488698(ctx, base);
   }
   const u32 device = load_u32(0x82586168);
+  {  // S4ep1-nx (2026-11-15, the title's white sky): TFU-nx's frame capture for the game's own flips (which skip
+     // D3DDevice_Present_hook): s4_diag_capture_present = N reads render target 0 back before each resolve and
+     // EndTiling of Present N's frame, and the back buffer at its end (logs/tfu_<N>_*.ppm).
+    static const int32_t capture_at = REXCVAR_GET(s4_diag_capture_present);
+    static u32 s4_presents = 0;
+    ++s4_presents;
+    if (capture_at > 0) {
+      if (g_tfu_capture_frame) {
+        TfuDiagReadBackBuffer(device, g_tfu_capture_present, "back");
+        RGPU_INFO("[s4 diag] capture frame {}: {} resolves", g_tfu_capture_present, g_tfu_capture_index);
+        g_tfu_capture_frame = false;
+      }
+      if (s4_presents == u32(capture_at)) {
+        g_tfu_capture_frame = true;
+        g_tfu_capture_present = s4_presents;
+        g_tfu_capture_index = 0;
+      }
+    }
+  }
   if (load_u32(0x8252FA48) == 0) {
     D3DDevice_Present_hook(device);
   } else {
@@ -916,6 +937,9 @@ BANJO_RENUT_HOOK_RAW(sub_821C30D0) {
     RGPU_INFO("[s4] EndTiling: flags {:X}, dest {:08X}, colour {:08X}, Z {}, stencil {}", ctx.r4.u32, ctx.r5.u32,
               ctx.r6.u32, ctx.f1.f64, ctx.r8.u32);
   }
+  if (g_tfu_capture_frame && g_tfu_capture_index < 40)  // S4ep1-nx: the tiled target before its resolves
+    TfuDiagReadBackBuffer(ctx.r3.u32, g_tfu_capture_present,
+                          fmt::format("endtiling{:02}_{:X}_{:08X}", g_tfu_capture_index++, ctx.r4.u32, ctx.r5.u32));
   ctx.r3.u64 = EndTilingImpl(ctx.r3.u32, true, ctx.r4.u32, 0, ctx.r5.u32, ctx.r6.u32, float(ctx.f1.f64), ctx.r8.u32,
                              0);
 }
