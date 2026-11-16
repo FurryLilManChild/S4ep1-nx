@@ -243,3 +243,12 @@ Newest first.
     (`sasrt_renut_depth_restore`) then takes those words as the main pass's depth, and the sky fails against them.
     With it off the title matches Mark's photos of the 360 (`out\logs\round\norestore.png`). Default now off.
   - To check in the next Switch test: levels and special stages still look right with the restore off.
+
+## 2026-11-16: Switch test 6, release 0.5.0
+
+- Test 6 (build a9fd2f3b, Mark): menu opened with - and + (`menu shortcut: F8`), the
+  `[menu] in force` line read the toml, resolution drawn at 960x540, `[s4 speed]` 600 pacer steps per 10 s throughout.
+  Mark happy with it; release asked for.
+- Release: `app/s4_switch_release.toml` (the test settings with the profiler stacks, screenshots, GPU profile and
+  main-thread wait log off), the console's `deko3d_shaders.bin` from test 5 (434 variants, a superset of the 391
+  shipped), README, `docs/release-notes-0.5.0.md`. GitHub release v0.5.0 with `S4ep1-nx-0.5.0-switch.zip`.
