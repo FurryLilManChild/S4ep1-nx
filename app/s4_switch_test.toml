@@ -43,8 +43,8 @@ log_file_writer = true
 input_all_pads_user0 = false
 switch_software_keyboard = true
 banjo_show_profiler = false
-# TFU-nx (2026-11-13, test 9): the FPS counter in the top-left corner for Mark's tests (off in a release).
-banjo_show_fps = true
+# S4ep1-nx (2026-11-16, test 6): off by default; the port menu (- and +) turns it on.
+banjo_show_fps = false
 banjo_stall_watch_seconds = 1
 banjo_cpu_profiler = false
 banjo_cpu_enhancements = true
