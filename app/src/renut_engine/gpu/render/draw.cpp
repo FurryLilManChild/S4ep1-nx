@@ -2345,8 +2345,15 @@ struct ViewportState {
 
 // The screen rect of the one tile a draw is predicated to while tiling
 // (SetTilesLocked); false for a draw that runs in more tiles, or none.
+// S4ep1-nx (2026-11-15, the title screen's white sky): a test switch. Renut draws every tile into one full-size target,
+// so a draw the game predicates to every tile needs no tile at all; with this on, no draw is narrowed to one tile.
+REXCVAR_DEFINE_BOOL(s4_tile_predication_off, false, "S4ep1-nx",
+                    "Test: ignore the game's per-tile predication while tiling (draw into the whole target)");
 bool PredicatedTile(const GuestDevice &device, ClearRect &rect) {
   if (g_tiles.size() < 2)
+    return false;
+  static const bool off = REXCVAR_GET(s4_tile_predication_off);
+  if (off)
     return false;
   u32 mask = device.U32(d3d::kDeviceOffsetPredication);
   mask = (mask ? mask : ~0u) & g_replay_predication;
@@ -9446,7 +9453,7 @@ bool DrawsWithoutPixelShader(const GuestDevice &device, const Targets &t, const 
 // seconds after the first draw, every draw of the next two frames: its shaders, counts, target and state, in order.
 void DrawLog(const DrawCall &call, const Geometry &geometry, const ShaderRecord *vs, const ShaderRecord *ps,
              const Targets &targets, const PipelineKey &key, const SharedConstants &sc, u32 export_count,
-             const FloatConstants &vs_constants, const FloatConstants &ps_constants) {
+             const FloatConstants &vs_constants, const FloatConstants &ps_constants, const GuestDevice &device) {
   static const int32_t at = REXCVAR_GET(banjo_renut_diag_draw_log_s);
   if (at <= 0)
     return;
@@ -9483,9 +9490,14 @@ void DrawLog(const DrawCall &call, const Geometry &geometry, const ShaderRecord 
     for (int i = 0; i < 4; ++i) f[i] = std::bit_cast<float>(u32(w[i]));
     return fmt::format("{:.4g} {:.4g} {:.4g} {:.4g}", f[0], f[1], f[2], f[3]);
   };
-  RGPU_INFO("[drawlog]   vs c10 ({}) c14 ({}) c15 ({}); ps c0 ({}) c1 ({}) c2 ({}) c3 ({})",
+  ClearRect tile{};
+  const bool one_tile = PredicatedTile(device, tile);
+  RGPU_INFO("[drawlog]   vs c10 ({}) c14 ({}) c15 ({}); ps c0 ({}) c1 ({}) c2 ({}) c3 ({}); tiles {}, predication {:08X} "
+            "replay {:08X}, one tile {} ({} {} {} {})",
             reg(vs_constants, 10), reg(vs_constants, 14), reg(vs_constants, 15), reg(ps_constants, 0),
-            reg(ps_constants, 1), reg(ps_constants, 2), reg(ps_constants, 3));
+            reg(ps_constants, 1), reg(ps_constants, 2), reg(ps_constants, 3), g_tiles.size(),
+            device.U32(d3d::kDeviceOffsetPredication), g_replay_predication, one_tile, tile.x1, tile.y1, tile.x2,
+            tile.y2);
 }
 
 #if defined(PLUME_DEKO3D)
@@ -13327,7 +13339,7 @@ bool DrawStateLocked(const u8 *device_state, const DrawCall &call, const ReplayC
   static const bool draw_log = !REXCVAR_GET(banjo_renut_lean_diagnostics) ||
                                REXCVAR_GET(banjo_renut_diag_draw_log_s) > 0;
   if (draw_log)
-    DrawLog(call, geometry, vs, ps, targets, key, sc, export_count, vs_constants, ps_constants);
+    DrawLog(call, geometry, vs, ps, targets, key, sc, export_count, vs_constants, ps_constants, device);
   // banjo-nx (2026-10-19, banjo_renut_resolve_skip): the targets this draw can write.
   for (u32 i = 0; i < targets.color_count && i < key.color_count; ++i)
     if ((key.color_mask >> (4 * i)) & 0xF) {
