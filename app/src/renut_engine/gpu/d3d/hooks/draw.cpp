@@ -492,7 +492,7 @@ static u32 EndTilingImpl(u32 device, bool katamari, u32 resolve_flags, u32 rects
     static bool once = false;
     if (!once) {
       once = true;
-      RGPU_WARN("[katamari] EndTiling with pResolveRects 0x{:08X}: resolving the tiles' rects instead", rects_va);
+      RGPU_WARN("[renut] EndTiling with pResolveRects 0x{:08X}: resolving the tiles' rects instead", rects_va);
     }
   }
   const u32 count = d.W(native::off::TileCount);
@@ -839,24 +839,7 @@ BANJO_RENUT_HOOK_RAW(sub_8249E2F8) {
     return p ? u32(*p) : 0;
   };
   auto load_f32 = [&](u32 va) -> float { return std::bit_cast<float>(load_u32(va)); };
-  {  // S4ep1-nx (2026-11-15): the slow-motion check. Every 600 Presents: real time against the guest's clock (mftb),
-     // the game's own-flip flag, and the frame pacer's ticks per microsecond (obj + 12).
-    static uint64_t calls = 0, host0 = 0, guest0 = 0;
-    const uint64_t host_now = uint64_t(std::chrono::duration_cast<std::chrono::microseconds>(
-                                           std::chrono::steady_clock::now().time_since_epoch()).count());
-    const uint64_t guest_now = rex::chrono::Clock::QueryGuestTickCount();
-    if (calls++ % 600 == 0) {
-      if (host0) {
-        const u32 pacer = load_u32(0x82586118);
-        RGPU_INFO("[s4] 600 Presents in {:.2f} s real, {:.2f} s guest clock; own flip {:08X}, pacer ticks/us {}",
-                  double(host_now - host0) / 1e6,
-                  double(guest_now - guest0) / double(rex::chrono::Clock::guest_tick_frequency()),
-                  load_u32(0x8252FA48), pacer ? load_f32(pacer + 12) : 0.0f);
-      }
-      host0 = host_now;
-      guest0 = guest_now;
-    }
-  }
+
   if (load_u32(0x824F13CC) == 0) {
     ctx.r3.u64 = 0x824F1330;
     sub_82488698(ctx, base);

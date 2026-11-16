@@ -2785,7 +2785,7 @@ int TextureDumpWindow(uint64_t frame) {
     window = next++;
     frames_in = 0;
     next_open = seconds + double(std::max(1, spec.every));
-    RGPU_INFO("[rr6] texture dump window {} from frame {} ({:.0f} s, {} frames)", window, frame, seconds, spec.frames);
+    RGPU_INFO("[renut] texture dump window {} from frame {} ({:.0f} s, {} frames)", window, frame, seconds, spec.frames);
   }
   if (window >= 0)
     ++frames_in;
@@ -2831,9 +2831,9 @@ void TextureDumpWriterMain() {
     }
     w->room.notify_all();
     if (!ok)
-      RGPU_WARN("[rr6] texture dump: {} not written", path);
+      RGPU_WARN("[renut] texture dump: {} not written", path);
     if (drained)
-      RGPU_INFO("[rr6] texture dump: {} files written ({:.1f} MB), {} failed, queue empty", written,
+      RGPU_INFO("[renut] texture dump: {} files written ({:.1f} MB), {} failed, queue empty", written,
                 double(bytes) / 1048576.0, failed);
   }
 }
@@ -2864,7 +2864,7 @@ void DiagTextureDumpTextureLocked(VideoState &s, HostTexture *t, u32 slot_index,
   // A volume (a host 3D image: its depth is slices in one subresource, not layers) is not dumped: the car's paint
   // samples none, and a copy of layer 1 of a 3D image removes the D3D12 device.
   if (t->dimension == TextureDimension::Tex3D && !t->stacked) {
-    RGPU_INFO("[rr6] texture dump: slot {} {:08X} is a volume ({}x{}x{}): not dumped", slot_index, guest_va,
+    RGPU_INFO("[renut] texture dump: slot {} {:08X} is a volume ({}x{}x{}): not dumped", slot_index, guest_va,
               t->alloc_width, t->alloc_height, t->depth);
     return;
   }
@@ -2872,7 +2872,7 @@ void DiagTextureDumpTextureLocked(VideoState &s, HostTexture *t, u32 slot_index,
   const u32 levels = std::max(1u, t->mip_levels);
   // Named before its copies: the last such line before a device removal (pcdump2 and pcdump4 died at the race's first
   // window, after the car select's textures had dumped three times) is the texture whose copy D3D12 refused.
-  RGPU_INFO("[rr6] texture dump: slot {} {:08X} {}x{} depth {} levels {} (extra {}) fmt {} (guest's host {}) dim {} "
+  RGPU_INFO("[renut] texture dump: slot {} {:08X} {}x{} depth {} levels {} (extra {}) fmt {} (guest's host {}) dim {} "
             "stacked {} layout {} render target {} mips pending {}",
             slot_index, guest_va, t->alloc_width, t->alloc_height, t->depth, t->mip_levels, t->extra_levels, int(host),
             int(t->info.host), int(t->dimension), t->stacked, int(t->layout), t->render_target, t->mips_pending);
@@ -2962,7 +2962,7 @@ void DiagTextureDumpLocked(const GuestDevice &device, uint64_t ps_hash) {
   if (paint)
     paint_done = true;
   if (dumped)
-    RGPU_INFO("[rr6] texture dump: frame {} window {} ps {:016X}: {} textures queued{}", frame, window, ps_hash, dumped,
+    RGPU_INFO("[renut] texture dump: frame {} window {} ps {:016X}: {} textures queued{}", frame, window, ps_hash, dumped,
               all ? fmt::format(" ({} of {} in the window)", seen.size(), all) : std::string());
 }
 
@@ -3004,7 +3004,7 @@ void DiagTextureDumpCompleteLocked(uint32_t slot) {
     }
     Video::RetireLocked(std::unique_ptr<plume::RenderBuffer>(d.buffer));
   }
-  RGPU_INFO("[rr6] texture dump: {} textures queued for writing, {} dropped (rr6_diag_texture_dump)", queued, dropped);
+  RGPU_INFO("[renut] texture dump: {} textures queued for writing, {} dropped (rr6_diag_texture_dump)", queued, dropped);
   list.clear();
 }
 
@@ -9144,7 +9144,7 @@ const VertexDeclarationRecord *DeviceDeclarationLocked(const GuestDevice &device
     for (u32 i = 0; i < count; ++i)
       words += fmt::format(" {:08X}:{:08X}:{:08X}", device.U32(first + i * 12), device.U32(first + i * 12 + 4),
                            device.U32(first + i * 12 + 8));
-    RGPU_INFO("[katamari] device declaration {:016X}: {} elements{}", hash, count, words);
+    RGPU_INFO("[renut] device declaration {:016X}: {} elements{}", hash, count, words);
   }
   last_hash = hash;
   last = record.get();

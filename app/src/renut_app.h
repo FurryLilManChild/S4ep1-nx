@@ -21,6 +21,7 @@
 #include "renut_engine/mnk_controls.h"
 #include "renut_engine/Timer.h"
 #include "renut_engine/Fps.h"
+#include "s4/s4_menu.h"
 #include "renut_engine/hooks.h"
 // katamari-nx: N&B's title update is not part of this port (Beautiful Katamari has no title update in the user's
 // files). The DLC installer is (2026-10-31, the user's 16 DLC packages): reNut upstream's, game-agnostic.
@@ -113,6 +114,8 @@ public:
     //     rex::cvar::LoadConfig("renut.toml");
     // }
 
+    bool AppOverlayOpen() const override { return s4::MenuOpen(); }  // S4ep1-nx: the port menu has the pad
+
     void OnCreateDialogs(rex::ui::ImGuiDrawer* drawer) override {
 #if BANJO_RENUT_RENDERER
         // katamari-nx (2026-11-01): the app's dialogs draw with the ImGui inside this executable, whose context only
@@ -127,6 +130,8 @@ public:
         fpsManager.GetCreateCounter("Shown");  // S4ep1-nx: made here, before the display thread ticks it
         drawer->AddDialog(fps_dialog_.get());
         drawer->AddDialog(new RenuLogOverlayDialog(drawer));
+        // S4ep1-nx (2026-11-15): the port menu (src/s4/s4_menu.cpp): - and + together on the Switch, F8 on the PC.
+        s4::RegisterMenu(drawer, config_file_path(), [this](bool on) { fpsManager.showFPS = on; });
         // CPU/GPU profiler window ported from UnleashedRecomp (F5 / banjo_show_profiler).
         profiler_dialog_ = std::make_unique<ProfilerOverlayDialog>(drawer);
         drawer->AddDialog(profiler_dialog_.get());
@@ -220,7 +225,7 @@ public:
     void OnPostSetup() override {
         // katamari-nx (2026-10-31): DLC packages in the "dlc" folder next to the NRO / exe installed before the game
         // starts (reNut upstream's installer, renut_engine/dlc_install.cpp, as banjo-nx does).
-        REXLOG_INFO("[tfu] {}", RexAppBuildStamp());  // TFU-nx (2026-11-12): ties this log to its build
+        REXLOG_INFO("[s4] {}", RexAppBuildStamp());  // TFU-nx (2026-11-12): ties this log to its build
         renut::dlc::InstallPackages(runtime());
         rr6::ApplyLanguage();  // rr6-nx (2026-11-10): config.toml's language
         // One log line with every enhancement and whether it is active (src/cpu/banjo_enhancements.h).

@@ -12,6 +12,7 @@
 #include <array>
 #include <bit>
 #include <cctype>
+#include <cmath>
 #include <chrono>  // sasrt-nx (2026-11-03, input_switch_disconnect_grace_ms; port 52)
 #include <cstdio>
 #include <cstring>
@@ -90,6 +91,12 @@ REXCVAR_DEFINE_BOOL(input_joycon_sideways_stick, true, "Input",
 // sasrt-nx (2026-11-03; port 52): a pad HID reports absent for a moment (a Bluetooth hiccup, a style change) reached the
 // game as a disconnect at once, and Sonic Transformed stops a race for it about once a race; shipped games wait before
 // they say so.
+// S4ep1-nx (2026-11-15): the driver passes the sticks through raw and the game applies its own dead zone; this adds
+// one on top for worn sticks that drift. Radial, rescaled so full tilt stays full. Live (the port menu sets it).
+REXCVAR_DEFINE_INT32(input_stick_deadzone, 0, "Input",
+                     "Extra stick dead zone in percent of full tilt (0 = none, the game's own only; 10 or 20 for "
+                     "drifting sticks). Changed from the port menu (- and + together)")
+    .range(0, 50);
 REXCVAR_DEFINE_INT32(input_switch_disconnect_grace_ms, 1000, "Input",
                      "A controller HID reports as not connected is kept, with its last state, for this long before "
                      "the game is told it is gone (a Bluetooth hiccup or a layout change clears in well under a "
@@ -670,6 +677,21 @@ void SwitchInputDriver::Poll(size_t index) {
   gamepad.left_trigger = (held & table.left_trigger) ? 0xFF : 0;
   gamepad.right_trigger = (held & table.right_trigger) ? 0xFF : 0;
   // HID reports up as positive Y, like XInput, so no inversion is needed.
+  if (const int32_t dz = REXCVAR_GET(input_stick_deadzone); dz > 0) {
+    auto apply = [dz](HidAnalogStickState& st) {
+      const float len = std::sqrt(float(st.x) * float(st.x) + float(st.y) * float(st.y));
+      const float inner = 32767.0f * float(dz) / 100.0f;
+      if (len <= inner) {
+        st = HidAnalogStickState{};
+        return;
+      }
+      const float out = std::min(32767.0f, (len - inner) * 32767.0f / (32767.0f - inner));
+      st.x = s32(float(st.x) * out / len);
+      st.y = s32(float(st.y) * out / len);
+    };
+    apply(left);
+    apply(right);
+  }
   gamepad.thumb_lx = ClampStickAxis(left.x);
   gamepad.thumb_ly = ClampStickAxis(left.y);
   gamepad.thumb_rx = ClampStickAxis(right.x);
@@ -754,6 +776,29 @@ void SwitchInputDriver::DispatchMenuShortcuts(Slot& slot, uint64_t held) {
       REXLOG_INFO("menu shortcut: {}", rex::ui::VirtualKeyToString(vk));
     }
     slot.menu_shortcuts = now ? (slot.menu_shortcuts | bit) : (slot.menu_shortcuts & ~bit);
+  }
+
+  /*
+   * S4ep1-nx (2026-11-15, from LoS1-nx): - and + together: F8, the app's port menu (app/src/s4/s4_menu.cpp). Same
+   * UI-thread handoff. F8, not LoS1's F5: the profiler window has F5 in this tree.
+   */
+  {
+    const uint64_t kBitAppMenu = uint64_t(1) << 12;
+    constexpr uint64_t kMinusPlus = HidNpadButton_Minus | HidNpadButton_Plus;
+    const bool now = (held & kMinusPlus) == kMinusPlus;
+    const bool before = (slot.menu_shortcuts & kBitAppMenu) != 0;
+    if (now && !before) {
+      auto press = [] {
+        rex::ui::KeyEvent keystroke(nullptr, rex::ui::VirtualKey::kF8, 1, false, false, false, false, false);
+        rex::ui::ProcessKeyEvent(keystroke);
+      };
+      rex::ui::Window* const window = window_ui_.load(std::memory_order_acquire);
+      if (!window || !window->app_context().CallInUIThread(press)) {
+        press();
+      }
+      REXLOG_INFO("menu shortcut: F8 (- and +)");
+    }
+    slot.menu_shortcuts = now ? (slot.menu_shortcuts | kBitAppMenu) : (slot.menu_shortcuts & ~kBitAppMenu);
   }
 
   /*

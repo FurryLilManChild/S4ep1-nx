@@ -655,7 +655,7 @@ u32 LockResource(u32 resource, u32 mip_lock, u32 base_address, u32 mip_address, 
   if (((common & 0xF) == 3 || (common & 0xF) == 4) && (flags & 0x10)) {
     static std::atomic<uint32_t> logged{0};
     if (logged.fetch_add(1, std::memory_order_relaxed) < 24)
-      RGPU_INFO("[katamari] texture lock: resource {:08X} type {} address {:08X} size {} flags {:X}", resource,
+      RGPU_INFO("[renut] texture lock: resource {:08X} type {} address {:08X} size {} flags {:X}", resource,
                 common & 0xF, address, size, flags);
   }
   u32 fenced = resource;

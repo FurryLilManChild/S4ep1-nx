@@ -136,6 +136,13 @@ class ReXApp : public ui::WindowedApp, public ui::WindowListener, public ui::Win
   /// fonts via AddFontFromMemoryTTF() or similar.
   virtual void OnConfigureFonts(ImFontAtlas* atlas) { (void)atlas; }
 
+  /// An app's own menu is open (S4ep1-nx's port menu, from LoS1-nx): the gamepad goes to the menu, as with the SDK's
+  /// overlays.
+  virtual bool AppOverlayOpen() const { return false; }
+
+  /// The player's config file, for an app menu that saves to it.
+  const std::filesystem::path& config_file_path() const { return config_path_; }
+
   /// sa2-nx: TOML applied before the config file (<name>.toml), as defaults it overrides key by key. Empty = none.
   virtual std::string_view BuiltInConfig() const { return {}; }
 

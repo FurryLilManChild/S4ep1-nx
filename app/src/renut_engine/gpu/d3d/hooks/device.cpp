@@ -117,7 +117,7 @@ static void TfuPresentDiagSwap(uint32_t front_buffer, uint64_t swap_ordinal) {
     g_tfu_diag_resolves = g_tfu_diag_presents = 0;
     g_tfu_diag_dests.clear();
   }
-  if (swap_ordinal > 900 ? swap_ordinal % 300 != 1 : swap_ordinal % 30 != 1)  // TFU-nx: then every 10 s
+  if (swap_ordinal != 1)  // S4ep1-nx 0.5.0: the first swap only (TFU-nx logged every 10 s)
     return;
   bool known = false, has_texture = false, written = false;
   uint32_t w = 0, h = 0, slot = UINT32_MAX;
@@ -132,7 +132,7 @@ static void TfuPresentDiagSwap(uint32_t front_buffer, uint64_t swap_ordinal) {
       slot = t->slot;
     }
   }
-  RGPU_INFO("[tfu diag] swap {}: front buffer {:08X} (host texture {}, image {}, GPU-written {}, {}x{}, slot {}); "
+  RGPU_INFO("[renut] swap {}: front buffer {:08X} (host texture {}, image {}, GPU-written {}, {}x{}, slot {}); "
             "since the last swap: {} resolves to{}, {} Present (auto front {:08X}, auto back {:08X})",
             swap_ordinal, front_buffer, known, has_texture, written, w, h, slot == UINT32_MAX ? -1 : int(slot),
             resolves, dests.empty() ? " none" : dests, presents, pf, pb);

@@ -81,6 +81,20 @@ class XamDialog : public rex::ui::ImGuiDialog {
     }
   }
 
+  // S4ep1-nx (2026-11-15): the game's message boxes (the save prompt at the title) drew at ImGui's 13 px design size,
+  // too small to read on the handheld screen. Twice the size, padding with it.
+  virtual void DrawScaled(ImGuiIO& io) = 0;
+  void OnDraw(ImGuiIO& io) final {
+    constexpr float kScale = 2.0f;
+    ImGui::PushFont(nullptr, ImGui::GetStyle().FontSizeBase * kScale);
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8 * kScale, 4 * kScale));
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(8 * kScale, 4 * kScale));
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(12 * kScale, 10 * kScale));
+    DrawScaled(io);
+    ImGui::PopStyleVar(3);
+    ImGui::PopFont();
+  }
+
  private:
   std::function<void()> close_callback_ = nullptr;
 };
@@ -237,7 +251,7 @@ class MessageBoxDialog : public XamDialog {
 
   uint32_t chosen_button() const { return chosen_button_; }
 
-  void OnDraw(ImGuiIO& io) override {
+  void DrawScaled(ImGuiIO& io) override {
     bool first_draw = false;
     if (!has_opened_) {
       ImGui::OpenPopup(title_.c_str());
@@ -377,7 +391,7 @@ class KeyboardInputDialog : public XamDialog {
   const std::string& text() const { return text_; }
   bool cancelled() const { return cancelled_; }
 
-  void OnDraw(ImGuiIO& io) override {
+  void DrawScaled(ImGuiIO& io) override {
     bool first_draw = false;
     if (!has_opened_) {
       ImGui::OpenPopup(title_.c_str());

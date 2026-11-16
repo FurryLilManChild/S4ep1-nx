@@ -26,7 +26,8 @@ REXCVAR_DEFINE_STRING(renut_dlc_folder, "dlc", "Nuts&Bolts/DLC",
     "reNut's folder.");
 // rr6-nx (2026-11-02, the user's request): the 36 small "Unlock Key" packs unlock cars; off by default, the user's
 // decision. The 41 music packs are not in the list.
-REXCVAR_DEFINE_BOOL(rr6_dlc_unlock_keys, false, "Nuts&Bolts/DLC",
+REXCVAR_DEFINE_BOOL(rr6_dlc_unlock_keys, true,  // S4ep1-nx: true, nothing hidden (Sonic 4 has no such packs)
+                    "Nuts&Bolts/DLC",
     "Ridge Racer 6's 36 car unlock keys (DLC): false (the default) keeps them from the game, though they stay "
     "installed; true shows them too. The music packs are shown either way.");
 REXCVAR_DECLARE(std::string, dlc_hidden);  // sdk/src/system/xam/content_manager.cpp
