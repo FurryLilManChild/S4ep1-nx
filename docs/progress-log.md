@@ -192,3 +192,16 @@ Newest first.
   size = scale.Size(guest size)), made for 1280x720 games. Sonic 4's targets are 1920x1080, so TFU's handheld 540 drew
   them at 1440x810 and docked 720 at the full 1920x1080. s4_switch_test.toml: handheld 360 (960x540), docked 486
   (1296x729). The "Depth target" log line now gives the drawn size too, to confirm.
+
+## 2026-11-15 (night): Switch test 3 read; shaders from the console for the next build
+
+- Test 3 was build a950e242 (pacer fix, before the resolution change): frame-thread steps 600-602 in every 10 s window
+  (the fix holds; 0-599 Presents held back a window). Display 48.9-59.8 new images a second. GPU profile in a heavy
+  window, mostly at 460.8 MHz: 17.9 ms a frame = 9.8 draws (1920x1080 colour+depth) + 3.2 depth resolves + 2.5
+  resolves + 1.6 present and overlays + 0.8 other. CPU total 34 % of 400.
+- Special stage: 19,663-26,503 draws in 10 s not drawn, "no host shader": the console met 28 shaders the PC runs never
+  captured (8 of them at the title screen). Mark copied them and the console's deko3d_shaders.bin to out\sd_back.
+- Rebuilt in the cloud: 112 shaders (early alpha: little 1, unsupported 32), GLSL package 124 KB (772c70372b97181f);
+  variant cache from the PC list, renut_001-004's run-time variants and the console's file merged: 367 variants,
+  1,040 KB, 0 failed (81ca2d573e44597b). Mark's out\pc\shader_capture now holds the same 112 (two from the cloud dump
+  added), so the PC build's shader table matches.
