@@ -188,3 +188,7 @@ Newest first.
   counts Presents that woke the frame thread and those held back.
 - FPS counter: no game hook ticked a counter for Sonic 4 (TFU's and Katamari's were address hooks), so the overlay was
   empty. Now ticked by the display thread at each refresh with a new image ("Shown"); cpu/gpu lines only if set.
+- The GPU dips: Renut's internal heights are a scale of height / 720 (render_scale.h, surfaces.cpp BuildTarget: host
+  size = scale.Size(guest size)), made for 1280x720 games. Sonic 4's targets are 1920x1080, so TFU's handheld 540 drew
+  them at 1440x810 and docked 720 at the full 1920x1080. s4_switch_test.toml: handheld 360 (960x540), docked 486
+  (1296x729). The "Depth target" log line now gives the drawn size too, to confirm.

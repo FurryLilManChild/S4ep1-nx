@@ -275,8 +275,10 @@ bool BuildTarget(HostSurface &surface, const d3d::SurfaceDesc &desc, uint32_t mi
     if (surface.format != DepthTargetFormat()) {
       static uint32_t logged = 0;
       if (logged++ < 16)
-        RGPU_INFO("Depth target {:08X}: {}x{} x{} samples, 24-bit unorm depth with stencil (banjo_deko3d_depth24)",
-                  surface.guest_va, surface.width, surface.height, u32(surface.samples));
+        RGPU_INFO("Depth target {:08X}: {}x{} (drawn at {}x{}, S4ep1-nx) x{} samples, 24-bit unorm depth with stencil "
+                  "(banjo_deko3d_depth24)",
+                  surface.guest_va, surface.width, surface.height, surface.scale.Size(surface.width),
+                  surface.scale.Size(surface.height), u32(surface.samples));
     }
   } else {
     surface.format = SurfaceColorFormat(desc);
