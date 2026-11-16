@@ -2372,6 +2372,8 @@ bool PredicatedTile(const GuestDevice &device, ClearRect &rect) {
 }
 
 ViewportState ComputeViewportSlow(const GuestDevice &device, const Targets &t);
+REXCVAR_DEFINE_BOOL(s4_diag_no_scissor, false, "S4ep1-nx", "Test: draw with no window scissor (the whole target)");
+REXCVAR_DEFINE_BOOL(s4_diag_no_depth_test, false, "S4ep1-nx", "Test: draw with the depth test always passing");
 
 // banjo-nx (2026-10-19, render-thread proposal 8): the last draw's viewport again when everything ComputeViewportSlow
 // reads is the same: the device words (VteControl, the six viewport values, ModeControl, WindowOffset, the window
@@ -2540,6 +2542,14 @@ ViewportState ComputeViewportSlow(const GuestDevice &device, const Targets &t) {
   vs.viewport.y *= scale;
   vs.viewport.width *= scale;
   vs.viewport.height *= scale;
+  // S4ep1-nx (2026-11-15, the title's white sky): a test switch, no window scissor (the whole target).
+  static const bool s4_no_scissor = REXCVAR_GET(s4_diag_no_scissor);
+  if (s4_no_scissor) {
+    sx1 = 0;
+    sy1 = 0;
+    sx2 = int32_t(t.width);
+    sy2 = int32_t(t.height);
+  }
   vs.scissor = ScaleRect(plume::RenderRect(sx1, sy1, sx2, sy2), t.scale);
   return vs;
 }
@@ -7589,6 +7599,9 @@ PipelineKey MakeKey(const GuestDevice &device, const ShaderRecord *vs, const Sha
   key.color_mask = u32(dev.m_ValuesPacket.ColorMask) & 0xFFFF;
   const bool depth_words = t.depth || t.depth_dropped;  // banjo-nx (2026-10-21, Targets::depth_dropped)
   key.depth_control = depth_words ? u32(cp.DepthControl) : 0;
+  static const bool s4_no_depth_test = REXCVAR_GET(s4_diag_no_depth_test);  // S4ep1-nx: zfunc ALWAYS (7), a test
+  if (s4_no_depth_test)
+    key.depth_control |= 0x70u;
   key.stencil_ref_mask = depth_words ? u32(dev.m_ValuesPacket.StencilRefMask) & 0xFFFFFF : 0;
   key.stencil_ref_mask_bf = depth_words ? u32(dev.m_ValuesPacket.StencilRefMaskBF) & 0xFFFFFF : 0;
   key.mode_control = u32(cp.ModeControl) & 0x7;
@@ -9492,6 +9505,16 @@ void DrawLog(const DrawCall &call, const Geometry &geometry, const ShaderRecord 
   };
   ClearRect tile{};
   const bool one_tile = PredicatedTile(device, tile);
+  {
+    const ViewportState v = ComputeViewportSlow(device, targets);
+    RGPU_INFO("[drawlog]   viewport {:.0f} {:.0f} {:.0f} {:.0f} depth {:.3f}-{:.3f} remap {} {}, scissor {} {} {} {} "
+              "(window TL {:08X} BR {:08X}), target {}x{} guest {}x{}",
+              v.viewport.x, v.viewport.y, v.viewport.width, v.viewport.height, v.viewport.minDepth,
+              v.viewport.maxDepth, v.depth_remap[0], v.depth_remap[1], v.scissor.left, v.scissor.top,
+              v.scissor.right, v.scissor.bottom, u32(device.dev().m_WindowPacket.WindowScissorTL),
+              u32(device.dev().m_WindowPacket.WindowScissorBR), targets.width, targets.height, targets.guest_width,
+              targets.guest_height);
+  }
   RGPU_INFO("[drawlog]   vs c10 ({}) c14 ({}) c15 ({}); ps c0 ({}) c1 ({}) c2 ({}) c3 ({}); tiles {}, predication {:08X} "
             "replay {:08X}, one tile {} ({} {} {} {})",
             reg(vs_constants, 10), reg(vs_constants, 14), reg(vs_constants, 15), reg(ps_constants, 0),
