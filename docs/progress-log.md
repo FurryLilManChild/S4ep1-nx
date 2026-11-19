@@ -2,6 +2,23 @@
 
 Newest first.
 
+## 2026-11-18: GitHub issue 1 (invisible objects, Mad Gear), test build for 0.5.1
+
+- Reporter's logs (8 runs, release 0.5.0): six ended "Call to invalid or unregistered function at guest address
+  0x8210C638"; every skipped draw was "no host shader" (20 shaders, up to 315,000 draws in one run).
+- 0x8210C638: a leaf callback with no .pdata, its address built at 0x8210C0BC/0x8210C0C8 (lis/addi two instructions
+  apart) and stored in an object. Declared in app/overrides.toml. tools/built_ptr_scan.py (new) plus a data-table sweep
+  against the generator's registered functions: no other missing function (the other hits are switch table bases,
+  SEH scope records, or data).
+- Shaders: Sonic 4 keeps 282 precompiled in data.cpk (NNSTDSHADER/SHADER.AMB 280, DEMO/WORLDMAP/WORLDMAP.AMB 2), 8 in
+  default.xex, and compiles 7 itself at boot from HLSL in the image (Prim2D*). 0.5.0 had 112 (97 disc, 8 image, 7 boot);
+  the reporter's 20 are all disc shaders. tools/cpk_extract.py and tools/s4_cpk_shaders.py (new) dump every data.cpk
+  shader; build_pc.ps1 runs it every build.
+- Test build on Mark's PC (fresh C:\S4ep1-nx): 297 shaders (290 + the 7 from a 90 s PC run), deko3d package 297 of 297
+  compiled (sha256 1f6b65ef53686630), NRO s4ep1.nro sha256 e3e87d6b24a54639 with app/s4_switch_test.toml and 0.5.0's
+  deko3d_shaders.bin. To test: Casino Street 2, Lost Labyrinth 1-3, Mad Gear.
+- Still open: on-console shader translation (a Renut-wide project), the Lost Labyrinth Act 3 water report.
+
 ## 2026-11-14: kickoff
 
 - Repo made from TFU-nx's tree (`docs/upstream.md`). GPL-3.0 (Mark's OK).
