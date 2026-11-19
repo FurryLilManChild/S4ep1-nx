@@ -146,7 +146,7 @@ if ($Renut) {
     $cpk = Join-Path $repo 'assets\extracted\data.cpk'
     if (-not (Test-Path $cpk)) { Write-Host "Missing $cpk (the game's data). Tell Claude."; exit 1 }
     Step 'Adding the shaders in data.cpk' 'cpk_shaders.log' {
-        & $py -I (Join-Path $repo 'tools\s4_cpk_shaders.py') --cpk $cpk --out $dump
+        & $py (Join-Path $repo 'tools\s4_cpk_shaders.py') --cpk $cpk --out $dump
     }
 
     # 3c. XenosRecomp links Microsoft's DXC (Windows x64 binaries, kept out of git as rr6-nx did). One time: taken

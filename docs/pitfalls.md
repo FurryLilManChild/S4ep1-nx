@@ -2,6 +2,9 @@
 
 Mistakes and wrong conclusions from this port, newest first. Reviewed with Mark at wrap-up, then moved into the skills.
 
+- 2026-11-18: the new data.cpk shader step in build_pc.ps1 ran Python with -I (isolated), which ignores the user
+  site-packages where the script's own step installs xxhash (pip --user); Mark's build failed at it. Call tools in a
+  build script the way the script's other steps call them, and never -I where a --user module is needed.
 - 2026-11-18: release 0.5.0 shipped 97 of the 282 shaders Sonic 4 keeps in data.cpk (NNSTDSHADER/SHADER.AMB,
   WORLDMAP.AMB): the dump scanned only default.xex (8) and what our runs captured. Renut skips every draw whose shader
   is not in the build, so areas nobody had played showed invisible objects (GitHub issue 1). TFU-nx had already hit
