@@ -10,7 +10,7 @@ PC).
 
 ## Status
 
-Version **0.5.0**: feature complete, needs a full playthrough.
+Version **0.5.1**: feature complete, needs a full playthrough.
 
 | | |
 | --- | --- |
@@ -29,7 +29,7 @@ Known issues: see [Known issues](#known-issues). Session notes: [docs/progress-l
 
 ## Installing (Switch)
 
-1. Download `S4ep1-nx-0.5.0-switch.zip` from the Releases page and copy its `switch` folder to the root of the SD card.
+1. Download `S4ep1-nx-0.5.1-switch.zip` from the Releases page and copy its `switch` folder to the root of the SD card.
    That gives `/switch/s4ep1-nx/` with `s4ep1.nro`, `renut.toml` and `deko3d_shaders.bin`.
 2. Make the folder `/switch/s4ep1-nx/game_root/` and put `default.xex` and `data.cpk` from your own copy in it.
 3. Start the homebrew menu through title takeover (hold R while opening a game) and run `s4ep1.nro`.
