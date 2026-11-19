@@ -141,6 +141,13 @@ if ($Renut) {
             Write-Host 'out\renut_shader_dump made empty (no code image yet): Renut captures the shaders at run time.'
         }
     }
+    # S4ep1-nx (2026-11-18, GitHub issue 1): every build adds the shaders the game keeps in data.cpk (282, in
+    # NNSTDSHADER/SHADER.AMB and DEMO/WORLDMAP/WORLDMAP.AMB). 0.5.0 lacked 185 of them and skipped their draws.
+    $cpk = Join-Path $repo 'assets\extracted\data.cpk'
+    if (-not (Test-Path $cpk)) { Write-Host "Missing $cpk (the game's data). Tell Claude."; exit 1 }
+    Step 'Adding the shaders in data.cpk' 'cpk_shaders.log' {
+        & $py -I (Join-Path $repo 'tools\s4_cpk_shaders.py') --cpk $cpk --out $dump
+    }
 
     # 3c. XenosRecomp links Microsoft's DXC (Windows x64 binaries, kept out of git as rr6-nx did). One time: taken
     #     from renderbag/dxc-bin at the pinned commit (docs/upstream.md).

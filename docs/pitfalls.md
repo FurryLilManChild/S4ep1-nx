@@ -2,6 +2,21 @@
 
 Mistakes and wrong conclusions from this port, newest first. Reviewed with Mark at wrap-up, then moved into the skills.
 
+- 2026-11-18: release 0.5.0 shipped 97 of the 282 shaders Sonic 4 keeps in data.cpk (NNSTDSHADER/SHADER.AMB,
+  WORLDMAP.AMB): the dump scanned only default.xex (8) and what our runs captured. Renut skips every draw whose shader
+  is not in the build, so areas nobody had played showed invisible objects (GitHub issue 1). TFU-nx had already hit
+  this and written tools/tfu_pack_shaders.py; the step was not carried over. Before the first release of any Renut
+  port: find where the game stores its shaders (scan every data file for 0x102A11 containers), dump them all into
+  the build, and say plainly to Mark which shaders a release lacks and what that means on screen.
+- 2026-11-18: I told Mark the Switch "can't" translate shaders. It can (MSR-nx does); this port just has no
+  on-console translation step. Say what a port does or lacks, not what the hardware can't do.
+- 2026-11-18: 0x8210C638 (a callback whose address is built by lis/addi with two instructions between them, stored
+  in an object at 0x8210C0D8) had no .pdata and was never registered: Mad Gear's "invalid or unregistered function".
+  The pointer sweep only takes pointers stored in data; built addresses need a scan that follows the register.
+- 2026-11-18: from the reporter's video alone I built four renderer theories (culling, the face flag, early alpha, the
+  CPU picking a side) and proposed a test build, before reading the logs the reporter had attached. The logs showed
+  the 0.5.0 release skipping every draw whose shader is missing from its shader set ("no host shader", 20 shaders).
+  For any bug report, read the attached logs (DRAWS NOT DRAWN, missing shaders, FATAL lines) before forming theories.
 
 
 - 2026-11-14: copying TFU-nx's tree with tar and committing with `git add -A` silently dropped four files TFU tracks

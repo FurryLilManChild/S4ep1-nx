@@ -9,6 +9,12 @@
 # First codegen: "UnresolvedCall b 0x821F42D8 from 0x821FBA04". 0x821F42D8 is an 8-byte leaf thunk with no .pdata
 # (gap 0x821F42A8-0x821F42F0 of small accessors): lwz r3,0x260(r3); b 0x82201258. Reached only as a tail call.
 "0x821F42D8" = { size = 0x8 }
+# GitHub issue 1 (2026-11-18): "Call to invalid or unregistered function at guest address 0x8210C638" (Mad Gear, six
+# crashes in the reporter's logs). A leaf callback (0x8210C638-0x8210C65C, blr) in the gap 0x8210C570-0x8210C660 with no
+# .pdata; its address is built at 0x8210C0BC/0x8210C0C8 (lis r10,0x8211 ... addi r6,r10,-0x39C8, two instructions
+# apart) and stored at +0x11C of the object at 0x8210C0D8, so the pointer sweep (data words only) never saw it.
+# tools/built_ptr_scan.py over the whole image finds no other: the other hits are switch table bases.
+"0x8210C638" = { size = 0x28 }
 
 # Code pointers into unclaimed gaps, stored in data (vtables, callback tables) or built in code (lis/addi:
 # callbacks passed at run time), accepted by tools/pointer_fixpoint.py pass 1: the scratch listing fits
