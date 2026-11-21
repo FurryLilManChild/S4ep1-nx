@@ -10,11 +10,11 @@ PC).
 
 ## Status
 
-Version **0.5.1**: feature complete, needs a full playthrough.
+Version **1.0**: played start to finish.
 
 | | |
 | --- | --- |
-| Switch | Plays at a steady 60 fps at stock clocks, drawn at 960x540 in handheld and 1296x729 docked. Title, zones, acts and special stages tested; not yet played start to finish |
+| Switch | Plays at a steady 60 fps at stock clocks, drawn at 960x540 in handheld and 1296x729 docked. Played start to finish |
 | PC | Builds and plays (Vulkan or D3D12, or the emulated GPU); no PC release yet |
 | Port menu | Hold **-** and **+** together: FPS counter, handheld and docked resolution, handheld GPU profile, stick dead zone; Save and close keeps the choices |
 
@@ -29,7 +29,7 @@ Known issues: see [Known issues](#known-issues). Session notes: [docs/progress-l
 
 ## Installing (Switch)
 
-1. Download `S4ep1-nx-0.5.1-switch.zip` from the Releases page and copy its `switch` folder to the root of the SD card.
+1. Download `S4ep1-nx-1.0.0-switch.zip` from the Releases page and copy its `switch` folder to the root of the SD card.
    That gives `/switch/s4ep1-nx/` with `s4ep1.nro`, `renut.toml` and `deko3d_shaders.bin`.
 2. Make the folder `/switch/s4ep1-nx/game_root/` and put `default.xex` and `data.cpk` from your own copy in it.
 3. Start the homebrew menu through title takeover (hold R while opening a game) and run `s4ep1.nro`.
@@ -53,7 +53,7 @@ Hold **-** and **+** together (F8 on the PC). The game pauses its input while th
 
 ## Known issues
 
-- Not yet played start to finish. Please report anything that looks or plays wrong, with the logs (below).
+- Please report anything that looks or plays wrong, with the logs (below).
 - Docked mode has had less testing than handheld.
 - The title screen's sky needed a renderer feature switched off (an EDRAM depth restore from another port). Levels and
   special stages looked right with it off in testing; a scene that draws wrongly may be related.

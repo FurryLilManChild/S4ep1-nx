@@ -656,8 +656,8 @@ if(REXGLUE_PLATFORM_SWITCH)
                      "${CMAKE_CURRENT_SOURCE_DIR}/rr6_switch_defaults.toml"
                      "${CMAKE_CURRENT_SOURCE_DIR}/rr6_switch.toml")
     endif()
-    # TFU-nx (2026-11-12): no icon yet (hbmenu shows its default); rr6-nx's cover art is not ours to ship.
-    set(RENUT_ICON "${CMAKE_CURRENT_SOURCE_DIR}/../tools/switch/icon/tfu_icon.jpg")
+    # S4ep1-nx 1.0 (2026-11-20): Mark's icon, 256x256 JPEG, kept on his PC only (.gitignore): art is not in git.
+    set(RENUT_ICON "${CMAKE_CURRENT_SOURCE_DIR}/../tools/switch/icon/s4ep1_icon.jpg")
     set(RENUT_ICON_ARG)
     if(EXISTS "${RENUT_ICON}")
         set(RENUT_ICON_ARG ICON "${RENUT_ICON}")
@@ -665,7 +665,7 @@ if(REXGLUE_PLATFORM_SWITCH)
     rexglue_switch_add_nro(renut
         NAME "Sonic the Hedgehog 4: Episode I"
         AUTHOR "FurryLilManChild"
-        VERSION "0.1.0"
+        VERSION "1.0.0"
         ${RENUT_ICON_ARG})
 endif()
 

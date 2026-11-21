@@ -90,3 +90,6 @@ __pycache__/
 *.pe
 extracted/
 tools/xexunpack/lzxd_mem
+
+# App icons are art, kept on Mark's PC only (S4ep1-nx 1.0)
+tools/switch/icon/*.jpg
