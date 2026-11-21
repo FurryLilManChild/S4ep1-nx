@@ -1,5 +1,5 @@
 # TFU-nx: builds the Switch NRO on Mark's PC with devkitPro (C:\devkitPro), Renut's renderer on deko3d, and puts the
-# test folder together in out\sd\switch\s4ep1-nx\ (renut.nro, renut.toml) with the NRO's SHA-256. Every step's full
+# test folder together in out\sd\switch\s4ep1-nx\ (s4ep1.nro, renut.toml) with the NRO's SHA-256. Every step's full
 # output goes to out\logs\.
 #
 # Usage (from C:\TFU-nx): powershell -ExecutionPolicy Bypass -File tools\win\build_switch.ps1 [-Jobs N] [-Clean]
@@ -142,7 +142,14 @@ $nro = Join-Path $build 'renut.nro'
 $elf = Join-Path $build 'renut'  # the ELF (no extension in this toolchain)
 if (-not (Test-Path $nro)) { Write-Host 'The build finished but renut.nro is not where expected. Tell Claude.'; exit 1 }
 New-Item -ItemType Directory -Force -Path $sdOut | Out-Null
-Copy-Item $nro (Join-Path $sdOut 'renut.nro') -Force
+# S4ep1-nx 1.0 (Mark): the NRO goes on the SD card as s4ep1.nro, never renut.nro.
+# An old renut.nro left by earlier builds moves to the deletion folder (Mark empties it), so only s4ep1.nro is there.
+$forDeletion = 'C:\Games\04 MY PORTS\FOR DELETION\S4ep1-nx old renut.nro'
+foreach ($old in @('renut.nro', 'renut.nro.sha256')) {
+    $p = Join-Path $sdOut $old
+    if (Test-Path $p) { New-Item -ItemType Directory -Force -Path $forDeletion | Out-Null; Move-Item $p (Join-Path $forDeletion $old) -Force }
+}
+Copy-Item $nro (Join-Path $sdOut 's4ep1.nro') -Force
 # The settings must parse: the SDK loads them before its log opens, and one bad line (the first test: a duplicate key)
 # silently left every setting at its default.
 $toml = Join-Path $repo 'app\s4_switch_test.toml'
@@ -150,7 +157,7 @@ python -c "import sys, tomllib; tomllib.load(open(sys.argv[1], 'rb'))" $toml
 if ($LASTEXITCODE -ne 0) { Write-Host 'app\s4_switch_test.toml does not parse (above). Tell Claude.'; exit 1 }
 Copy-Item $toml (Join-Path $sdOut 'renut.toml') -Force
 $hash = (Get-FileHash $nro -Algorithm SHA256).Hash.ToLower()
-Set-Content -Path (Join-Path $sdOut 'renut.nro.sha256') -Value "$hash  renut.nro" -Encoding ascii
+Set-Content -Path (Join-Path $sdOut 's4ep1.nro.sha256') -Value "$hash  s4ep1.nro" -Encoding ascii
 $stampFile = Join-Path $build 'tfu_build_stamp\tfu_build_stamp.h'
 $stamp = if (Test-Path $stampFile) { (Get-Content $stampFile -Raw).Trim() } else { 'no stamp' }
 $elfDir = Join-Path $repo 'out\nx\elf'
@@ -158,6 +165,6 @@ New-Item -ItemType Directory -Force -Path $elfDir | Out-Null
 if (Test-Path $elf) { Copy-Item $elf (Join-Path $elfDir ("renut_" + $hash.Substring(0, 12) + ".elf")) -Force }
 Write-Host ''
 Write-Host "BUILD OK: $sdOut"
-Write-Host "   renut.nro  $([math]::Round((Get-Item $nro).Length / 1MB)) MB  sha256 $hash"
+Write-Host "   s4ep1.nro  $([math]::Round((Get-Item $nro).Length / 1MB)) MB  sha256 $hash"
 Write-Host "   $stamp"
-Write-Host 'On the SD card: /switch/s4ep1-nx/ gets renut.nro, renut.toml and a game_root folder holding default.xex and data.cpk (assets\extracted).'
+Write-Host 'On the SD card: /switch/s4ep1-nx/ gets s4ep1.nro, renut.toml and a game_root folder holding default.xex and data.cpk (assets\extracted).'

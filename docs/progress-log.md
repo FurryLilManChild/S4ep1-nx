@@ -269,3 +269,12 @@ Newest first.
 - Release: `app/s4_switch_release.toml` (the test settings with the profiler stacks, screenshots, GPU profile and
   main-thread wait log off), the console's `deko3d_shaders.bin` from test 5 (434 variants, a superset of the 391
   shipped), README, `docs/release-notes-0.5.0.md`. GitHub release v0.5.0 with `S4ep1-nx-0.5.0-switch.zip`.
+
+## 2026-11-20: release 1.0
+
+- Mark: played start to finish on 0.5.1 (NRO e3e87d6b...), ready for 1.0. Game code unchanged since 0.5.1.
+- 1.0 build (86c76103, Mark's PC): NRO sha256 655ce19a8922...; its NACP read from the file: name "Sonic the Hedgehog 4:
+  Episode I", version 1.0.0, a 38,962-byte JPEG icon (Mark's, kept out of git in tools/switch/icon/).
+- Zip S4ep1-nx-1.0.0-switch.zip: s4ep1.nro, renut.toml (app/s4_switch_release.toml), deko3d_shaders.bin (0.5.1's,
+  581 variants). docs/release-notes-1.0.0.md.
+- build_switch.ps1 now writes s4ep1.nro (Mark: never renut.nro); an old renut.nro there moves to FOR DELETION.
